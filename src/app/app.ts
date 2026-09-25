@@ -66,6 +66,9 @@ export class App {
   protected readonly currentPassword = signal('');
   protected readonly newPassword = signal('');
   protected readonly confirmPassword = signal('');
+  protected readonly currentPasswordVisible = signal(false);
+  protected readonly newPasswordVisible = signal(false);
+  protected readonly confirmPasswordVisible = signal(false);
   protected readonly passwordNotice = signal('');
   protected readonly passwordError = signal('');
 
@@ -97,6 +100,12 @@ export class App {
     this.passwordPanelOpen.update(open => !open);
     this.passwordNotice.set('');
     this.passwordError.set('');
+  }
+
+  protected togglePasswordVisibility(field: 'current' | 'new' | 'confirm'): void {
+    if (field === 'current') this.currentPasswordVisible.update(visible => !visible);
+    if (field === 'new') this.newPasswordVisible.update(visible => !visible);
+    if (field === 'confirm') this.confirmPasswordVisible.update(visible => !visible);
   }
 
   protected changePassword(): void {

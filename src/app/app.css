@@ -128,6 +128,12 @@ form { display: grid; gap: .65rem; } label { margin-top: .8rem; color: #42544c; 
 .password-panel form { gap: .65rem; }
 .password-panel label { margin-top: .5rem; color: #273348; font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .password-panel input { min-height: 3rem; border: 1px solid #d0dce5; border-radius: .8rem; padding: .8rem 1rem; background: rgba(255, 255, 255, .9); }
+.password-panel .password-field { position: relative; }
+.password-panel .password-field input { padding-right: 3.2rem; }
+.password-panel .password-toggle { position: absolute; top: 50%; right: .7rem; display: grid; place-items: center; width: 2rem; height: 2rem; border: 0; border-radius: .4rem; color: #5d7890; background: transparent; cursor: pointer; transform: translateY(-50%); }
+.password-panel .password-toggle:hover { color: #5a50ed; background: #e9e7ff; }
+.password-panel .eye-icon { position: relative; display: block; width: 1.15rem; height: .7rem; border: 1.5px solid currentColor; border-radius: 90% 10%; transform: rotate(45deg); }
+.password-panel .eye-icon::after { content: ''; position: absolute; top: 50%; left: 50%; width: .28rem; height: .28rem; border-radius: 50%; background: currentColor; transform: translate(-50%, -50%) rotate(-45deg); }
 .password-panel .primary-button { width: 100%; margin-top: .8rem; background: #5045e8; }
 .password-panel .primary-button:hover:not(:disabled) { background: #453bd0; }
 .password-close { color: #5a50ed; }
