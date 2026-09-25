@@ -122,6 +122,15 @@ form { display: grid; gap: .65rem; } label { margin-top: .8rem; color: #42544c; 
 .employee-workspace .primary-button:hover:not(:disabled) { background: #453bd0; }
 .employee-workspace .secondary-action { border-color: #bab6fa; color: #5a50ed; }
 .employee-workspace .secondary-action:hover { background: #e9e7ff; }
+.password-panel { display: grid; gap: .65rem; max-width: 34rem; margin: 0 0 1.5rem; padding: 1.35rem; border: 1px solid rgba(255, 255, 255, .72); border-radius: 1rem; background: rgba(255, 255, 255, .78); box-shadow: 0 .8rem 2rem rgba(93, 135, 167, .08); }
+.password-panel > div { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .35rem; }
+.password-panel h2 { margin: 0; color: #273348; font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; }
+.password-panel label { margin-top: .45rem; color: #7d879b; font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.password-panel input { min-height: 3rem; border: 1px solid #d0dce5; border-radius: .8rem; padding: .8rem 1rem; background: rgba(255, 255, 255, .9); }
+.password-panel .primary-button { margin-top: .7rem; background: #5045e8; }
+.password-panel .primary-button:hover:not(:disabled) { background: #453bd0; }
+.close-password { border: 0; padding: .35rem 0; color: #5a50ed; background: transparent; cursor: pointer; font-weight: 700; }
+.manager-password-panel { max-width: 40rem; }
 .employee-history-search { display: grid; gap: .55rem; margin-bottom: 1.5rem; padding: 1rem 1.2rem; border: 1px solid rgba(255, 255, 255, .72); border-radius: 1rem; background: rgba(255, 255, 255, .68); }
 .employee-history-search label { margin: 0; color: #7d879b; font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .employee-history-search > div { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }

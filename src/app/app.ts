@@ -61,6 +61,10 @@ export class App {
   protected readonly employeePhoneCountryCode = signal('+225');
   protected readonly countryCodes = COUNTRY_CODES;
   protected readonly managerSection = signal<'reports' | 'employees'>('reports');
+  protected readonly passwordPanelOpen = signal(false);
+  protected readonly currentPassword = signal('');
+  protected readonly newPassword = signal('');
+  protected readonly confirmPassword = signal('');
 
   constructor() {
     const storedProfile = localStorage.getItem('itc_profile');
@@ -84,6 +88,29 @@ export class App {
     localStorage.removeItem('itc_token');
     localStorage.removeItem('itc_profile');
     this.user.set(null);
+  }
+
+  protected changePassword(): void {
+    this.error.set('');
+    this.notice.set('');
+    if (this.newPassword() !== this.confirmPassword()) {
+      this.error.set('Les nouveaux mots de passe ne correspondent pas.');
+      return;
+    }
+    this.http.patch<void>('/api/account/password', {
+      currentPassword: this.currentPassword(),
+      newPassword: this.newPassword(),
+      confirmPassword: this.confirmPassword(),
+    }).subscribe({
+      next: () => {
+        this.currentPassword.set('');
+        this.newPassword.set('');
+        this.confirmPassword.set('');
+        this.passwordPanelOpen.set(false);
+        this.notice.set('Mot de passe modifié avec succès.');
+      },
+      error: (response: HttpErrorResponse) => this.error.set(response.error?.detail ?? response.error?.message ?? `Le mot de passe n’a pas pu être modifié (erreur ${response.status}).`),
+    });
   }
 
   protected saveDraft(): void {

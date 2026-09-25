@@ -39,6 +39,7 @@ L'employé peut :
 - consulter son historique ;
 - rechercher dans son historique par date ;
 - voir la réaction du Directeur / Manager.
+- modifier son mot de passe avec vérification de l'ancien.
 
 ## 3. Gestion des comptes
 

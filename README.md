@@ -17,6 +17,7 @@ Daily Reporting permet aux employés de saisir leurs activités quotidiennes et 
 - Recherche par date
 - Filtrage des reportings par employé côté manager
 - Réactions Like / Dislike
+- Changement sécurisé du mot de passe
 - Interface Angular responsive
 
 ## Stack technique
