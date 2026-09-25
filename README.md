@@ -1,59 +1,101 @@
-# ItcInnovation
+# Daily Reporting
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.0.
+Application web multi-entreprises de reporting journalier.
 
-## Development server
+Daily Reporting permet aux employés de saisir leurs activités quotidiennes et aux Directeurs / Managers de consulter, rechercher et réagir aux reportings envoyés.
 
-To start a local development server, run:
+## Fonctionnalités
 
-```bash
-ng serve
-```
+- Authentification par email et mot de passe avec JWT
+- Création initiale du compte Directeur / Manager
+- Création, activation et désactivation des comptes employés
+- Création et modification des reportings en brouillon
+- Confirmation avant l'envoi définitif
+- Historique des reportings employés
+- Consultation manager des reportings et de leur détail
+- Recherche par date
+- Réactions Like / Dislike
+- Interface Angular responsive
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Stack technique
 
-## Code scaffolding
+- Frontend : Angular, TypeScript, HTML, CSS
+- Backend : Java, Spring Boot, Spring Security
+- API : REST avec JWT
+- Base de données : PostgreSQL
+- Accès aux données : Spring Data JPA / Hibernate
+- Dépendances frontend : npm
+- Dépendances backend : Maven
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Prérequis
 
-```bash
-ng generate component component-name
-```
+- Node.js et npm
+- Java 25 ou une version compatible avec le projet
+- PostgreSQL
+- Une base PostgreSQL nommée `itc_innovation`
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Configuration backend
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+Définir les variables d'environnement avant de lancer Spring Boot :
 
 ```bash
-ng test
+set DB_PASSWORD=mot-de-passe-postgres
+set JWT_SECRET=cle-secrete-d-au-moins-32-octets
 ```
 
-## Running end-to-end tests
+Sous PowerShell :
 
-For end-to-end (e2e) testing, run:
+```powershell
+$env:DB_PASSWORD = "mot-de-passe-postgres"
+$env:JWT_SECRET = "cle-secrete-d-au-moins-32-octets"
+```
+
+## Lancer le projet
+
+Terminal frontend :
 
 ```bash
-ng e2e
+npm install
+npm start
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Frontend : `http://localhost:4200`
 
-## Additional Resources
+Terminal backend :
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+Sous Windows :
+
+```cmd
+cd backend
+mvnw.cmd spring-boot:run
+```
+
+Le backend est disponible sur `http://localhost:8080`.
+
+## Tests
+
+Frontend :
+
+```bash
+npm test
+```
+
+Backend :
+
+```bash
+cd backend
+./mvnw test
+```
+
+## Documentation
+
+Le cahier des charges fonctionnel est disponible dans [docs/cahier-des-charges.md](docs/cahier-des-charges.md).
+
+## Dépôt
+
+Projet GitHub : https://github.com/pakoundiconstantinoweb-commits/daily-reporting
