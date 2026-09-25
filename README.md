@@ -12,8 +12,10 @@ Daily Reporting permet aux employés de saisir leurs activités quotidiennes et 
 - Création et modification des reportings en brouillon
 - Confirmation avant l'envoi définitif
 - Historique des reportings employés
+- Recherche de son historique par date côté employé
 - Consultation manager des reportings et de leur détail
 - Recherche par date
+- Filtrage des reportings par employé côté manager
 - Réactions Like / Dislike
 - Interface Angular responsive
 

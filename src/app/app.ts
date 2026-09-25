@@ -46,6 +46,8 @@ export class App {
   protected readonly reportTitle = signal('');
   protected readonly reportDescription = signal('');
   protected readonly selectedDate = signal('');
+  protected readonly employeeSelectedDate = signal('');
+  protected readonly selectedEmployeeId = signal<number | null>(null);
   protected readonly notice = signal('');
   protected readonly editingReportId = signal<number | null>(null);
   protected readonly today = new Date();
@@ -134,6 +136,14 @@ export class App {
     });
   }
 
+  protected searchMyReports(): void {
+    const query = this.employeeSelectedDate() ? `?date=${this.employeeSelectedDate()}` : '';
+    this.http.get<Reporting[]>(`/api/reports/mine${query}`).subscribe({
+      next: (reports) => this.reportings.set(reports),
+      error: (response: HttpErrorResponse) => this.error.set(this.reportingError(response, 'Votre historique n’a pas pu être chargé.')),
+    });
+  }
+
   protected react(report: Reporting, reaction: 'LIKE' | 'DISLIKE'): void {
     this.http.patch<Reporting>(`/api/reports/manager/${report.id}/reaction`, { reaction }).subscribe({
       next: (updated) => {
@@ -146,6 +156,21 @@ export class App {
 
   protected selectReport(report: Reporting): void {
     this.selectedReport.set(report);
+  }
+
+  protected selectEmployee(employee: Employee): void {
+    this.selectedEmployeeId.set(employee.id);
+  }
+
+  protected clearEmployeeFilter(): void {
+    this.selectedEmployeeId.set(null);
+  }
+
+  protected visibleReportings(): Reporting[] {
+    const employeeId = this.selectedEmployeeId();
+    return employeeId === null
+      ? this.reportings()
+      : this.reportings().filter(report => report.employeeId === employeeId);
   }
 
   protected createEmployee(): void {
@@ -203,7 +228,7 @@ export class App {
     });
   }
 
-  private loadEmployeeReports(): void {
+  protected loadEmployeeReports(): void {
     this.http.get<Reporting[]>('/api/reports/mine').subscribe({
       next: (reports) => this.reportings.set(reports),
       error: () => this.error.set('Votre historique n’a pas pu être chargé.'),

@@ -35,9 +35,14 @@ public class ReportingController {
     }
 
     @GetMapping("/mine")
-    public List<ReportingResponse> mine(Authentication authentication) {
+    public List<ReportingResponse> mine(
+            @RequestParam(required = false) LocalDate date,
+            Authentication authentication) {
         Long employeeId = currentUserId(authentication);
-        return reportingRepository.findByEmployeeIdOrderByReportDateDesc(employeeId)
+        List<Reporting> reports = date == null
+                ? reportingRepository.findByEmployeeIdOrderByReportDateDesc(employeeId)
+                : reportingRepository.findByEmployeeIdAndReportDateOrderByReportDateDesc(employeeId, date);
+        return reports
                 .stream().map(ReportingResponse::from).toList();
     }
 

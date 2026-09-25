@@ -22,6 +22,7 @@ Le Directeur / Manager peut :
 - consulter les reportings envoyés ;
 - ouvrir le détail d'un reporting ;
 - rechercher un reporting par date ;
+- sélectionner un employé pour filtrer ses reportings ;
 - réagir avec Like ou Dislike ;
 - activer ou désactiver un compte employé.
 
@@ -36,6 +37,7 @@ L'employé peut :
 - modifier un brouillon ;
 - confirmer et envoyer un reporting ;
 - consulter son historique ;
+- rechercher dans son historique par date ;
 - voir la réaction du Directeur / Manager.
 
 ## 3. Gestion des comptes
