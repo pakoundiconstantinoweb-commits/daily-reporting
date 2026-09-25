@@ -32,20 +32,24 @@ public class AccountController {
     public void changePassword(
             @Valid @RequestBody PasswordChangeRequest request,
             Authentication authentication) {
-        User user = userRepository.findById(Long.valueOf(authentication.getName()))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
-
+        User user = currentUser(authentication);
         if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "L'ancien mot de passe est incorrect");
-        }
-        if (!request.newPassword().equals(request.confirmPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Les nouveaux mots de passe ne correspondent pas");
-        }
-        if (passwordEncoder.matches(request.newPassword(), user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le nouveau mot de passe doit être différent");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "L'ancien mot de passe est incorrect.");
         }
 
         user.setPassword(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
+    }
+
+    private User currentUser(Authentication authentication) {
+        try {
+            Long userId = Long.valueOf(authentication.getName());
+            return userRepository.findById(userId)
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.UNAUTHORIZED, "Utilisateur introuvable."));
+        } catch (NumberFormatException exception) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED, "Identifiant utilisateur invalide.");
+        }
     }
 }

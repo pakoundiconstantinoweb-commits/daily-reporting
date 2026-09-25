@@ -7,6 +7,7 @@ Daily Reporting permet aux employés de saisir leurs activités quotidiennes et 
 ## Fonctionnalités
 
 - Authentification par email et mot de passe avec JWT
+- Modification sécurisée du mot de passe par l'utilisateur
 - Création initiale du compte Directeur / Manager
 - Création, activation et désactivation des comptes employés
 - Création et modification des reportings en brouillon
@@ -17,7 +18,6 @@ Daily Reporting permet aux employés de saisir leurs activités quotidiennes et 
 - Recherche par date
 - Filtrage des reportings par employé côté manager
 - Réactions Like / Dislike
-- Changement sécurisé du mot de passe
 - Interface Angular responsive
 
 ## Stack technique

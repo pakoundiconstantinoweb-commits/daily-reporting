@@ -17,6 +17,7 @@ interface Reporting {
   description: string;
   status: 'DRAFT' | 'SUBMITTED';
   reaction: 'LIKE' | 'DISLIKE' | null;
+  employeeId: number;
   employeeFirstName: string;
   employeeLastName: string;
 }
@@ -65,6 +66,8 @@ export class App {
   protected readonly currentPassword = signal('');
   protected readonly newPassword = signal('');
   protected readonly confirmPassword = signal('');
+  protected readonly passwordNotice = signal('');
+  protected readonly passwordError = signal('');
 
   constructor() {
     const storedProfile = localStorage.getItem('itc_profile');
@@ -90,26 +93,36 @@ export class App {
     this.user.set(null);
   }
 
+  protected togglePasswordPanel(): void {
+    this.passwordPanelOpen.update(open => !open);
+    this.passwordNotice.set('');
+    this.passwordError.set('');
+  }
+
   protected changePassword(): void {
-    this.error.set('');
-    this.notice.set('');
+    this.passwordNotice.set('');
+    this.passwordError.set('');
     if (this.newPassword() !== this.confirmPassword()) {
-      this.error.set('Les nouveaux mots de passe ne correspondent pas.');
+      this.passwordError.set('Les nouveaux mots de passe ne correspondent pas.');
       return;
     }
-    this.http.patch<void>('/api/account/password', {
+    if (this.newPassword().length < 8) {
+      this.passwordError.set('Le nouveau mot de passe doit contenir au moins 8 caractères.');
+      return;
+    }
+
+    this.http.patch('/api/account/password', {
       currentPassword: this.currentPassword(),
       newPassword: this.newPassword(),
-      confirmPassword: this.confirmPassword(),
     }).subscribe({
       next: () => {
         this.currentPassword.set('');
         this.newPassword.set('');
         this.confirmPassword.set('');
-        this.passwordPanelOpen.set(false);
-        this.notice.set('Mot de passe modifié avec succès.');
+        this.passwordNotice.set('Mot de passe modifié avec succès.');
       },
-      error: (response: HttpErrorResponse) => this.error.set(response.error?.detail ?? response.error?.message ?? `Le mot de passe n’a pas pu être modifié (erreur ${response.status}).`),
+      error: (response: HttpErrorResponse) => this.passwordError.set(
+        response.error?.detail ?? response.error?.message ?? 'Le mot de passe n’a pas pu être modifié.'),
     });
   }
 
