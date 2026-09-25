@@ -123,6 +123,8 @@ form { display: grid; gap: .65rem; } label { margin-top: .8rem; color: #42544c; 
 .employee-workspace .secondary-action { border-color: #bab6fa; color: #5a50ed; }
 .employee-workspace .secondary-action:hover { background: #e9e7ff; }
 .password-panel { grid-column: 1 / -1; width: min(100% - 3rem, 42rem); margin: 1.5rem auto 0; padding: 1.5rem 1.7rem; border: 1px solid rgba(255, 255, 255, .72); border-radius: 1rem; background: rgba(255, 255, 255, .82); box-shadow: 0 .8rem 2rem rgba(93, 135, 167, .08); }
+.password-modal-backdrop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 1rem; background: rgba(16, 44, 73, .28); }
+.password-modal-backdrop .password-panel { width: min(100%, 30rem); max-height: calc(100vh - 2rem); margin: 0; overflow-y: auto; }
 .password-panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
 .password-panel h2 { margin: 0; color: #273348; font-family: 'Space Grotesk', sans-serif; }
 .password-panel form { gap: .65rem; }
