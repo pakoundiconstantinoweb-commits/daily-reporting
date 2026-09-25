@@ -131,7 +131,9 @@ export class App {
         this.passwordNotice.set('Mot de passe modifié avec succès.');
       },
       error: (response: HttpErrorResponse) => this.passwordError.set(
-        response.error?.detail ?? response.error?.message ?? 'Le mot de passe n’a pas pu être modifié.'),
+        response.status === 0
+          ? 'Le serveur est inaccessible ou le backend doit être redémarré.'
+          : response.error?.detail ?? response.error?.message ?? `Le mot de passe n’a pas pu être modifié. (erreur ${response.status})`),
     });
   }
 
