@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: backend
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/itc_innovation
+    username: postgres
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+  bootstrap-manager:
+    email: ${BOOTSTRAP_MANAGER_EMAIL:}
+    password: ${BOOTSTRAP_MANAGER_PASSWORD:}
+    first-name: ${BOOTSTRAP_MANAGER_FIRST_NAME:}
+    last-name: ${BOOTSTRAP_MANAGER_LAST_NAME:}

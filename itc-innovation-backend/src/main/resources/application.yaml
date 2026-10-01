@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: backend
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/itc_innovation}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD}}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:${JWT_SECRET}}
+  bootstrap-manager:
+    email: ${BOOTSTRAP_MANAGER_EMAIL:}
+    password: ${BOOTSTRAP_MANAGER_PASSWORD:}
+    first-name: ${BOOTSTRAP_MANAGER_FIRST_NAME:}
+    last-name: ${BOOTSTRAP_MANAGER_LAST_NAME:}

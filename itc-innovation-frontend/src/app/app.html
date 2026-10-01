@@ -1,0 +1,85 @@
+<main class="shell">
+  @if (user(); as profile) {
+    @if (profile.role === 'EMPLOYEE') {
+      <aside class="employee-sidebar" aria-label="Navigation employé">
+        <div class="sidebar-brand"><span class="brand-mark">DR</span><div><strong>Daily Reporting</strong><small>REPORTING</small></div></div>
+        <p class="sidebar-label">ESPACE EMPLOYÉ</p>
+        <nav class="sidebar-nav" aria-label="Navigation employé"><button type="button" [class.active]="employeeSection() === 'report'" [attr.aria-current]="employeeSection() === 'report' ? 'page' : null" (click)="employeeSection.set('report')"><span>R</span>Mon reporting</button><button type="button" [class.active]="employeeSection() === 'history'" [attr.aria-current]="employeeSection() === 'history' ? 'page' : null" (click)="employeeSection.set('history')"><span>H</span>Historique</button></nav>
+        <div class="employee-sidebar-account"><div class="account-avatar">{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</div><div class="account-name"><strong>{{ profile.firstName }} {{ profile.lastName }}</strong><small>Employé</small></div><button type="button" (click)="togglePasswordPanel()">Modifier le mot de passe</button><button type="button" class="employee-logout" (click)="logout()">Se déconnecter</button></div>
+      </aside>
+      @if (submitConfirmationOpen()) {
+        <div class="submit-confirm-backdrop" (click)="cancelSubmitReport()">
+          <section class="submit-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="submit-confirm-title" aria-describedby="submit-confirm-description" (click)="$event.stopPropagation()">
+            <h2 id="submit-confirm-title">Confirmer l’envoi ?</h2>
+            <p id="submit-confirm-description">Voulez-vous confirmer l’envoi de ce reporting ?</p>
+            <div class="submit-confirm-actions"><button type="button" class="submit-cancel-button" (click)="cancelSubmitReport()">Annuler</button><button type="button" class="submit-accept-button" [disabled]="submissionInProgress()" [attr.aria-busy]="submissionInProgress()" (click)="confirmSubmitReport()">{{ submissionInProgress() ? 'Envoi en cours…' : 'Confirmer' }}</button></div>
+          </section>
+        </div>
+      }
+      @if (passwordPanelOpen()) {
+        <div class="password-modal-backdrop" (click)="togglePasswordPanel()">
+          <section class="password-panel" role="dialog" aria-modal="true" aria-labelledby="password-title" (click)="$event.stopPropagation()">
+            <div class="password-panel-heading"><div><p class="eyebrow">Confidentialité</p><h2 id="password-title">Modifier le mot de passe</h2></div><button type="button" class="text-button password-close" (click)="togglePasswordPanel()">Fermer</button></div>
+            <form (ngSubmit)="changePassword()">
+            <label for="current-password">Mot de passe actuel</label><div class="password-field"><input id="current-password" name="currentPassword" [type]="currentPasswordVisible() ? 'text' : 'password'" required autocomplete="current-password" [ngModel]="currentPassword()" (ngModelChange)="currentPassword.set($event)"><button type="button" class="password-toggle" (click)="togglePasswordVisibility('current')" [attr.aria-label]="currentPasswordVisible() ? 'Masquer le mot de passe actuel' : 'Afficher le mot de passe actuel'"><span class="eye-icon" aria-hidden="true"></span></button></div>
+            <label for="new-password">Nouveau mot de passe</label><div class="password-field"><input id="new-password" name="newPassword" [type]="newPasswordVisible() ? 'text' : 'password'" required minlength="8" autocomplete="new-password" [ngModel]="newPassword()" (ngModelChange)="newPassword.set($event)"><button type="button" class="password-toggle" (click)="togglePasswordVisibility('new')" [attr.aria-label]="newPasswordVisible() ? 'Masquer le nouveau mot de passe' : 'Afficher le nouveau mot de passe'"><span class="eye-icon" aria-hidden="true"></span></button></div>
+            <label for="confirm-password">Confirmer le nouveau mot de passe</label><div class="password-field"><input id="confirm-password" name="confirmPassword" [type]="confirmPasswordVisible() ? 'text' : 'password'" required minlength="8" autocomplete="new-password" [ngModel]="confirmPassword()" (ngModelChange)="confirmPassword.set($event)"><button type="button" class="password-toggle" (click)="togglePasswordVisibility('confirm')" [attr.aria-label]="confirmPasswordVisible() ? 'Masquer la confirmation du mot de passe' : 'Afficher la confirmation du mot de passe'"><span class="eye-icon" aria-hidden="true"></span></button></div>
+            <button type="submit" class="primary-button">Enregistrer le nouveau mot de passe</button>
+            @if (passwordNotice()) { <p class="success" role="status">{{ passwordNotice() }}</p> } @if (passwordError()) { <p class="error" role="alert">{{ passwordError() }}</p> }
+            </form>
+          </section>
+        </div>
+      }
+      <section class="workspace employee-workspace">
+        @if (employeeSection() === 'report') {
+          <div class="workspace-heading"><div><p class="eyebrow">Espace employé</p><h1>Mon reporting du jour</h1></div><time>{{ today | date:'dd/MM/yyyy' }}</time></div>
+          <form class="report-form employee-report-form" (ngSubmit)="saveDraft()">
+            <label for="report-title">Titre de l’activité</label><input id="report-title" type="text" name="reportTitle" required [ngModel]="reportTitle()" (ngModelChange)="reportTitle.set($event); error.set('')" placeholder="Ex. Intervention à VSF">
+            <label for="report-description">Description</label><textarea id="report-description" name="reportDescription" rows="9" required [ngModel]="reportDescription()" (ngModelChange)="reportDescription.set($event); error.set('')" placeholder="Décrivez le travail effectué aujourd’hui..."></textarea>
+            <div class="actions"><button type="submit" class="secondary-action">Enregistrer en brouillon</button><button type="button" class="primary-button" (click)="submitReport()">Valider</button></div>
+            @if (notice()) { <p class="success" role="status">{{ notice() }}</p> } @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+          </form>
+        } @else {
+          <div class="workspace-heading"><div><p class="eyebrow">Espace employé</p><h1>Historique de mes reportings</h1></div></div>
+          <div class="report-date-filter"><label for="employee-date-search">Rechercher mon historique par date</label><div><input id="employee-date-search" type="date" [ngModel]="employeeSelectedDate()" (ngModelChange)="employeeSelectedDate.set($event)"><button type="button" (click)="searchMyReports()">Rechercher</button><button type="button" class="clear-search" (click)="employeeSelectedDate.set(''); loadEmployeeReports()">Toutes les dates</button></div></div>
+          @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+          <aside class="history employee-history-list" aria-label="Historique des reportings"><p class="eyebrow">Historique</p><h2>Mes reportings enregistrés</h2>
+            @for (report of reportings(); track report.id) {<article class="report-item"><div><strong>{{ report.title }}</strong><small>{{ report.reportDate }}</small></div>@if (report.status === 'DRAFT') {<button type="button" class="edit-button" (click)="editDraft(report)">Modifier</button>} @else {<div class="report-status"><span class="status">Envoyé</span>@if (report.reaction === 'LIKE') {<span class="reaction-status like">Like</span>} @else if (report.reaction === 'DISLIKE') {<span class="reaction-status dislike">Dislike</span>} @else {<span class="reaction-status pending">En attente</span>}</div>}</article>} @empty {<p class="muted">Aucun reporting enregistré.</p>}
+          </aside>
+        }
+      </section>
+    } @else {
+      <section class="workspace manager-dashboard">
+        <aside class="manager-sidebar" aria-label="Navigation manager">
+          <div class="sidebar-brand"><span class="brand-mark">DR</span><div><strong>Daily Reporting</strong><small>REPORTING</small></div></div>
+          <p class="sidebar-label">ESPACE DIRECTION</p>
+          <nav class="sidebar-nav" aria-label="Navigation manager"><button type="button" [class.active]="managerSection() === 'reports'" (click)="managerSection.set('reports')"><span>R</span>Reportings</button><button type="button" [class.active]="managerSection() === 'employees'" (click)="managerSection.set('employees')"><span>E</span>Employés</button></nav>
+          <div class="sidebar-account"><div class="account-avatar">{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</div><div class="account-name"><strong>{{ profile.firstName }} {{ profile.lastName }}</strong><small>Directeur / Manager</small></div><button type="button" (click)="logout()">Se déconnecter</button></div>
+        </aside>
+        <div class="manager-main">
+          <header class="manager-header"><div><p class="eyebrow">Espace Directeur / Manager</p>@if (managerSection() === 'reports') {<h1>Suivi des reportings journaliers de l'équipe</h1>} @else {<h1>Employés</h1><p class="manager-subtitle">Création des comptes et gestion des accès</p>}</div><div class="manager-date">{{ today | date:'dd MMMM yyyy':'':'fr-FR' }}<b>{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</b></div></header>
+          @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+          @if (managerSection() === 'reports') {
+            <div class="stats-grid"><article><span>Reportings aujourd'hui</span><strong>{{ countTodayReports() }}</strong><small>sur {{ activeEmployeeCount() }} employés actifs</small></article><article><span>Total reçus</span><strong>{{ reportings().length }}</strong><small>historique conservé</small></article><article><span>Comptes actifs</span><strong>{{ activeEmployeeCount() }}</strong><small>sur {{ employees().length }}</small></article></div>
+            <div class="report-date-filter"><label for="manager-date-search">Rechercher les reportings par date</label><div><input id="manager-date-search" type="date" [ngModel]="selectedDate()" (ngModelChange)="selectedDate.set($event)"><button type="button" (click)="searchReports()">Rechercher</button><button type="button" class="clear-search" (click)="selectedDate.set(''); searchReports()">Toutes les dates</button></div></div>
+            <div class="dashboard-panels"><section class="reports-panel"><div class="reports-heading"><h2>Reportings</h2>@if (selectedEmployeeId() !== null) {<button type="button" class="clear-filter" (click)="clearEmployeeFilter()">Tous les employés</button>}</div><div class="manager-list">@for (report of visibleReportings(); track report.id) {<article class="manager-report" [class.selected]="selectedReport()?.id === report.id" (click)="selectReport(report)"><div class="report-date">{{ report.reportDate }}</div><div class="report-content"><p class="eyebrow">{{ report.employeeFirstName }} {{ report.employeeLastName }}</p><h2>{{ report.title }}</h2><p>{{ report.description }}</p></div><div class="reactions" role="group" aria-label="Réactions au reporting"><button type="button" class="reaction-button like-button" [class.active]="report.reaction === 'LIKE'" [attr.aria-pressed]="report.reaction === 'LIKE'" (click)="$event.stopPropagation(); react(report, 'LIKE')"><span class="reaction-icon like-icon" aria-hidden="true"></span><span>Like</span><strong>{{ reactionCount(report, 'LIKE') }}</strong></button><button type="button" class="reaction-button dislike-button" [class.active]="report.reaction === 'DISLIKE'" [attr.aria-pressed]="report.reaction === 'DISLIKE'" (click)="$event.stopPropagation(); react(report, 'DISLIKE')"><span class="reaction-icon dislike-icon" aria-hidden="true"></span><span>Dislike</span><strong>{{ reactionCount(report, 'DISLIKE') }}</strong></button></div></article>} @empty {<p class="muted">Aucun reporting trouvé.</p>}</div></section><section class="team-panel"><h2>Équipe</h2>@for (employee of employees(); track employee.id) {<div class="team-row" [class.selected]="selectedEmployeeId() === employee.id" (click)="selectEmployee(employee)"><span class="report-avatar">{{ employee.firstName.charAt(0) }}</span><div><strong>{{ employee.firstName }} {{ employee.lastName }}</strong><small>{{ employee.department || 'Employé' }}</small></div><i [class.inactive]="employee.status === 'INACTIVE'"></i></div>} @empty {<p class="muted">Aucun employé pour l'instant.</p>}</section></div>
+            @if (selectedReport(); as report) { <article class="detail-panel"><div class="detail-heading"><div><p class="eyebrow">Détail du reporting</p><h2>{{ report.title }}</h2></div><button type="button" class="text-button dark" (click)="selectedReport.set(null)">Fermer</button></div><p class="detail-meta">{{ report.employeeFirstName }} {{ report.employeeLastName }} · {{ formatReportDate(report.reportDate) }}</p><p class="detail-description">{{ report.description }}</p><div class="detail-reaction"><span>Votre réaction</span><div class="reactions detail-reactions" role="group" aria-label="Réactions au reporting"><button type="button" class="reaction-button like-button" [class.active]="report.reaction === 'LIKE'" [attr.aria-pressed]="report.reaction === 'LIKE'" (click)="react(report, 'LIKE')"><span class="reaction-icon like-icon" aria-hidden="true"></span><span>Like</span><strong>{{ reactionCount(report, 'LIKE') }}</strong></button><button type="button" class="reaction-button dislike-button" [class.active]="report.reaction === 'DISLIKE'" [attr.aria-pressed]="report.reaction === 'DISLIKE'" (click)="react(report, 'DISLIKE')"><span class="reaction-icon dislike-icon" aria-hidden="true"></span><span>Dislike</span><strong>{{ reactionCount(report, 'DISLIKE') }}</strong></button></div></div></article> }
+          } @else {
+            <section class="employee-admin"><div><p class="eyebrow">Gestion des comptes</p><h2>Employés</h2></div>
+              <form class="employee-form" autocomplete="off" (ngSubmit)="createEmployee()">
+                <div class="field-group"><label for="employee-last-name">Nom</label><input id="employee-last-name" type="text" name="lastName" required autocomplete="off" placeholder="Nom de famille" [ngModel]="employeeLastName()" (ngModelChange)="employeeLastName.set($event)"></div>
+                <div class="field-group"><label for="employee-first-name">Prénom</label><input id="employee-first-name" type="text" name="firstName" required autocomplete="off" placeholder="Prénom" [ngModel]="employeeFirstName()" (ngModelChange)="employeeFirstName.set($event)"></div>
+                <div class="field-group"><label for="employee-email">Email professionnel</label><input id="employee-email" type="email" name="employeeEmail" required autocomplete="off" placeholder="email@gmail.com" [ngModel]="employeeEmail()" (ngModelChange)="employeeEmail.set($event)"></div>
+                <div class="field-group"><label for="employee-password">Mot de passe</label><input id="employee-password" type="password" name="employeePassword" required autocomplete="new-password" placeholder="Mot de passe temporaire" [ngModel]="employeePassword()" (ngModelChange)="employeePassword.set($event)"></div>
+                <div class="field-group"><label for="employee-phone">Téléphone</label><div class="phone-field"><select name="employeePhoneCountryCode" [ngModel]="employeePhoneCountryCode()" (ngModelChange)="employeePhoneCountryCode.set($event)" aria-label="Indicatif pays">@for (country of countryCodes; track country.name) { <option [value]="country.code">{{ country.name }} ({{ country.code }})</option> }</select><input id="employee-phone" type="tel" name="employeePhone" autocomplete="off" placeholder="Numéro de téléphone" [ngModel]="employeePhone()" (ngModelChange)="employeePhone.set($event)"></div></div>
+                <div class="field-group"><label for="employee-department">Service</label><input id="employee-department" type="text" name="department" autocomplete="off" placeholder="Ex. Informatique" [ngModel]="employeeDepartment()" (ngModelChange)="employeeDepartment.set($event)"></div>
+                <button type="submit" class="primary-button compact">Créer le compte</button>
+              </form>
+              <div class="employee-list">@for (employee of employees(); track employee.id) {<div class="employee-row"><div><strong>{{ employee.firstName }} {{ employee.lastName }}</strong><small>{{ employee.email }}{{ employee.department ? ' · ' + employee.department : '' }}</small></div><button type="button" class="status-button" [class.inactive]="employee.status === 'INACTIVE'" (click)="toggleEmployee(employee)">{{ employee.status === 'ACTIVE' ? 'Actif · Désactiver' : 'Inactif · Réactiver' }}</button></div>} @empty {<p class="muted">Aucun employé. Créez le premier compte.</p>}</div>
+            </section>
+          }
+        </div>
+      </section>
+    }
+  } @else { <app-login (authenticated)="handleLogin($event)"></app-login> }
+</main>

@@ -1,0 +1,31 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Node / Angular
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.angular/
+**/.angular/
+coverage/
+**/coverage/
+
+# Java / Spring Boot
+**/target/
+**/.classpath
+**/.project
+**/.settings/
+**/.factorypath
+**/.idea/
+
+# Logs
+*.log
+
+# Env files
+.env
+.env.*
+!
