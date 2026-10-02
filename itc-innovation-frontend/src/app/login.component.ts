@@ -23,7 +23,7 @@ export class LoginComponent {
   protected readonly firstName = signal('');
   protected readonly lastName = signal('');
   protected readonly phone = signal('');
-  protected readonly phoneCountryCode = signal('+225');
+  protected readonly phoneCountryCode = signal('+228');
   protected readonly countryCodes = COUNTRY_CODES;
   protected readonly setupSuccess = signal('');
   protected readonly passwordVisible = signal(false);
