@@ -60,7 +60,7 @@ export class App {
   protected readonly employeePassword = signal('');
   protected readonly employeeDepartment = signal('');
   protected readonly employeePhone = signal('');
-  protected readonly employeePhoneCountryCode = signal('+225');
+  protected readonly employeePhoneCountryCode = signal('+228');
   protected readonly countryCodes = COUNTRY_CODES;
   protected readonly managerSection = signal<'reports' | 'employees'>('reports');
   protected readonly employeeSection = signal<'report' | 'history'>('report');
