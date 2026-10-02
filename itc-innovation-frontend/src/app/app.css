@@ -257,8 +257,8 @@ form { display: grid; gap: .65rem; } label { margin-top: .8rem; color: #42544c; 
 	.manager-sidebar .sidebar-nav button { min-width: 0; gap: .45rem; padding-inline: .55rem; white-space: normal; }
 	.manager-sidebar .sidebar-nav button span { flex: 0 0 1.8rem; }
 	.manager-main { width: 100%; padding: 1rem; }
-	.report-date-filter { width: 100%; margin-inline: 0; padding: .9rem; }
-	.report-date-filter > div { width: 100%; min-width: 0; }
-	.report-date-filter input, .report-date-filter button { width: 100%; min-width: 0; max-width: 100%; }
+	.report-date-filter { grid-template-columns: minmax(0,1fr); width: 100%; margin-inline: 0; padding: .9rem; overflow: hidden; }
+	.report-date-filter > div { display: grid; grid-template-columns: minmax(0,1fr); width: 100%; min-width: 0; }
+	.report-date-filter input[type='date'], .report-date-filter button { display: block; box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; }
 	.team-panel > .muted { margin-inline: 1.2rem; overflow-wrap: anywhere; }
 }
