@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://daily-reporting-api.onrender.com/api/:path*"
+    }
+  ]
+}
