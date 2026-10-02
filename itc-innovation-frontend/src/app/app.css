@@ -250,3 +250,15 @@ form { display: grid; gap: .65rem; } label { margin-top: .8rem; color: #42544c; 
 	.employee-sidebar-account button { grid-column: 1 / -1; width: 100%; }
 	.employee-sidebar .sidebar-nav button { justify-content: center; font-size: .82rem; }
 }
+@media (max-width: 600px) {
+	.manager-dashboard { grid-template-columns: minmax(0,1fr); min-width: 0; max-width: 100%; }
+	.manager-sidebar, .manager-main, .manager-header, .stats-grid, .report-date-filter, .dashboard-panels, .reports-panel, .team-panel { min-width: 0; max-width: 100%; }
+	.manager-sidebar .sidebar-nav { width: 100%; grid-template-columns: repeat(2, minmax(0,1fr)); }
+	.manager-sidebar .sidebar-nav button { min-width: 0; gap: .45rem; padding-inline: .55rem; white-space: normal; }
+	.manager-sidebar .sidebar-nav button span { flex: 0 0 1.8rem; }
+	.manager-main { width: 100%; padding: 1rem; }
+	.report-date-filter { width: 100%; margin-inline: 0; padding: .9rem; }
+	.report-date-filter > div { width: 100%; min-width: 0; }
+	.report-date-filter input, .report-date-filter button { width: 100%; min-width: 0; max-width: 100%; }
+	.team-panel > .muted { margin-inline: 1.2rem; overflow-wrap: anywhere; }
+}
