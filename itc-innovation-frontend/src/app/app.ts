@@ -61,6 +61,7 @@ export class App {
   protected readonly employeeDepartment = signal('');
   protected readonly employeePhone = signal('');
   protected readonly employeePhoneCountryCode = signal('+228');
+  protected readonly employeePasswordVisible = signal(false);
   protected readonly countryCodes = COUNTRY_CODES;
   protected readonly managerSection = signal<'reports' | 'employees'>('reports');
   protected readonly employeeSection = signal<'report' | 'history'>('report');
@@ -106,10 +107,11 @@ export class App {
     this.passwordError.set('');
   }
 
-  protected togglePasswordVisibility(field: 'current' | 'new' | 'confirm'): void {
+  protected togglePasswordVisibility(field: 'current' | 'new' | 'confirm' | 'employee'): void {
     if (field === 'current') this.currentPasswordVisible.update(visible => !visible);
     if (field === 'new') this.newPasswordVisible.update(visible => !visible);
     if (field === 'confirm') this.confirmPasswordVisible.update(visible => !visible);
+    if (field === 'employee') this.employeePasswordVisible.update(visible => !visible);
   }
 
   protected changePassword(): void {
@@ -293,7 +295,7 @@ export class App {
       next: () => {
         this.notice.set('Compte employé créé.');
         this.employeeFirstName.set(''); this.employeeLastName.set(''); this.employeeEmail.set('');
-        this.employeePassword.set(''); this.employeeDepartment.set(''); this.employeePhone.set(''); this.loadEmployees();
+        this.employeePassword.set(''); this.employeePasswordVisible.set(false); this.employeeDepartment.set(''); this.employeePhone.set(''); this.loadEmployees();
       },
       error: (response: HttpErrorResponse) => this.error.set(apiErrorMessage(response, 'Le compte n’a pas pu être créé.')),
     });
