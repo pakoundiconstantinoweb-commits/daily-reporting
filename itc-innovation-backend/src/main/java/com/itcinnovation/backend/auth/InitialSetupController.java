@@ -1,7 +1,10 @@
 package com.itcinnovation.backend.auth;
 
+import java.util.Locale;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,19 +35,29 @@ public class InitialSetupController {
 
     @PostMapping("/manager")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserResponse createInitialManager(@Valid @RequestBody CreateManagerRequest request) {
-        if (userRepository.existsByEmailIgnoreCase(request.email())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cette adresse email est déjà utilisée");
+    @Transactional
+    public UserResponse createManager(@Valid @RequestBody CreateManagerRequest request) {
+        String email = request.email().trim().toLowerCase(Locale.ROOT);
+        var existingUser = userRepository.findByEmailIgnoreCase(email);
+        if (existingUser.isPresent()) {
+            String message = existingUser.get().getRole() == UserRole.MANAGER
+                    ? "Un compte Directeur / Manager existe déjà avec cette adresse e-mail."
+                    : "Cette adresse e-mail est déjà utilisée par un autre compte.";
+            throw new ResponseStatusException(HttpStatus.CONFLICT, message);
         }
 
         User manager = new User();
-        manager.setFirstName(request.firstName());
-        manager.setLastName(request.lastName());
-        manager.setEmail(request.email());
+        manager.setFirstName(request.firstName().trim());
+        manager.setLastName(request.lastName().trim());
+        manager.setEmail(email);
         manager.setPassword(passwordEncoder.encode(request.password()));
-        manager.setPhone(request.phone());
+        manager.setPhone(normalizeOptional(request.phone()));
         manager.setRole(UserRole.MANAGER);
         manager.setStatus(UserStatus.ACTIVE);
         return UserResponse.from(userRepository.save(manager));
+    }
+
+    private String normalizeOptional(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 }
