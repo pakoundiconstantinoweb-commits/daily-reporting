@@ -28,9 +28,6 @@ public class DatabaseSchemaMigration {
 
             jdbcTemplate.update("UPDATE users SET role = 'EMPLOYEE' WHERE role IS NULL");
             jdbcTemplate.update("UPDATE users SET status = 'ACTIVE' WHERE status IS NULL");
-            jdbcTemplate.update("UPDATE users SET manager_id = (SELECT MIN(id) FROM users WHERE role = 'MANAGER') "
-                    + "WHERE role = 'EMPLOYEE' AND manager_id IS NULL "
-                    + "AND EXISTS (SELECT 1 FROM users WHERE role = 'MANAGER')");
         };
     }
 

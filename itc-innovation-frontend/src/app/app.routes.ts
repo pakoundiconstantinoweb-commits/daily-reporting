@@ -1,3 +1,10 @@
 import { Routes } from '@angular/router';
 
-export const routes: Routes = [];
+import { App } from './app';
+import { ManagerSignupComponent } from './manager-signup.component';
+
+export const routes: Routes = [
+  { path: '', component: App },
+  { path: 'admin/create-director', component: ManagerSignupComponent },
+  { path: '**', redirectTo: '' },
+];
