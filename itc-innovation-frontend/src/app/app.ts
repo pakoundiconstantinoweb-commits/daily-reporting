@@ -33,6 +33,17 @@ interface Employee {
   status: 'ACTIVE' | 'INACTIVE';
 }
 
+interface ProfileInformation {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+  department: string | null;
+  role: 'MANAGER' | 'EMPLOYEE';
+  status: 'ACTIVE' | 'INACTIVE';
+}
+
 @Component({
   selector: 'app-root',
   imports: [CommonModule, FormsModule, LoginComponent],
@@ -63,9 +74,18 @@ export class App {
   protected readonly employeePhone = signal('');
   protected readonly employeePhoneCountryCode = signal('+228');
   protected readonly countryCodes = COUNTRY_CODES;
-  protected readonly managerSection = signal<'reports' | 'employees'>('reports');
-  protected readonly employeeSection = signal<'report' | 'history'>('report');
-  protected readonly passwordPanelOpen = signal(false);
+  protected readonly managerSection = signal<'reports' | 'employees' | 'profile'>('reports');
+  protected readonly employeeSection = signal<'report' | 'history' | 'profile'>('report');
+  protected readonly profileInformation = signal<ProfileInformation | null>(null);
+  protected readonly profileLoadError = signal('');
+  protected readonly profileFirstName = signal('');
+  protected readonly profileLastName = signal('');
+  protected readonly profileEmail = signal('');
+  protected readonly profilePhone = signal('');
+  protected readonly profileDepartment = signal('');
+  protected readonly profileSaving = signal(false);
+  protected readonly profileSaveNotice = signal('');
+  protected readonly profileSaveError = signal('');
   protected readonly currentPassword = signal('');
   protected readonly newPassword = signal('');
   protected readonly confirmPassword = signal('');
@@ -101,10 +121,70 @@ export class App {
     this.user.set(null);
   }
 
-  protected togglePasswordPanel(): void {
-    this.passwordPanelOpen.update(open => !open);
+  protected openProfile(): void {
+    if (this.user()?.role === 'MANAGER') {
+      this.managerSection.set('profile');
+    } else {
+      this.employeeSection.set('profile');
+    }
+    this.profileInformation.set(null);
+    this.profileLoadError.set('');
+    this.profileSaveNotice.set('');
+    this.profileSaveError.set('');
     this.passwordNotice.set('');
     this.passwordError.set('');
+    this.http.get<ProfileInformation>('/api/account/me').subscribe({
+      next: profile => {
+        this.profileInformation.set(profile);
+        this.profileFirstName.set(profile.firstName);
+        this.profileLastName.set(profile.lastName);
+        this.profileEmail.set(profile.email);
+        this.profilePhone.set(profile.phone ?? '');
+        this.profileDepartment.set(profile.department ?? '');
+      },
+      error: (response: HttpErrorResponse) => this.profileLoadError.set(
+        apiErrorMessage(response, 'Les informations du profil n’ont pas pu être chargées.')),
+    });
+  }
+
+  protected saveProfile(): void {
+    this.profileSaveNotice.set('');
+    this.profileSaveError.set('');
+    this.profileSaving.set(true);
+    this.http.put<ProfileInformation>('/api/account/me', {
+      firstName: this.profileFirstName().trim(),
+      lastName: this.profileLastName().trim(),
+      email: this.profileEmail().trim(),
+      phone: this.profilePhone().trim(),
+      department: this.profileDepartment().trim(),
+    }).subscribe({
+      next: updated => {
+        this.profileInformation.set(updated);
+        this.profileFirstName.set(updated.firstName);
+        this.profileLastName.set(updated.lastName);
+        this.profileEmail.set(updated.email);
+        this.profilePhone.set(updated.phone ?? '');
+        this.profileDepartment.set(updated.department ?? '');
+        this.user.update(current => {
+          if (!current) return current;
+          const refreshed = {
+            ...current,
+            firstName: updated.firstName,
+            lastName: updated.lastName,
+            email: updated.email,
+          };
+          localStorage.setItem('itc_profile', JSON.stringify(refreshed));
+          return refreshed;
+        });
+        this.profileSaveNotice.set('Tes informations ont été mises à jour.');
+        this.profileSaving.set(false);
+      },
+      error: (response: HttpErrorResponse) => {
+        this.profileSaveError.set(
+          apiErrorMessage(response, 'Les informations du profil n’ont pas pu être enregistrées.'));
+        this.profileSaving.set(false);
+      },
+    });
   }
 
   protected togglePasswordVisibility(field: 'current' | 'new' | 'confirm' | 'employee'): void {
@@ -265,16 +345,18 @@ export class App {
     return report.reaction === reaction ? 1 : 0;
   }
 
-  protected selectReport(report: Reporting): void {
-    this.selectedReport.set(report);
+  protected toggleReportDetails(report: Reporting): void {
+    this.selectedReport.update(selected => selected?.id === report.id ? null : report);
   }
 
   protected selectEmployee(employee: Employee): void {
     this.selectedEmployeeId.set(employee.id);
+    this.selectedReport.set(null);
   }
 
   protected clearEmployeeFilter(): void {
     this.selectedEmployeeId.set(null);
+    this.selectedReport.set(null);
   }
 
   protected visibleReportings(): Reporting[] {
