@@ -13,11 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.beans.factory.annotation.Value;
 
 import com.itcinnovation.backend.user.User;
 import com.itcinnovation.backend.user.UserRepository;
-import com.itcinnovation.backend.user.UserRole;
 import com.itcinnovation.backend.user.UserStatus;
 
 import jakarta.validation.Valid;
@@ -29,17 +27,11 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtEncoder jwtEncoder;
-    private final String superAdminEmail;
 
-    public AuthController(
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            JwtEncoder jwtEncoder,
-            @Value("${app.super-admin.email:}") String superAdminEmail) {
+    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtEncoder jwtEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtEncoder = jwtEncoder;
-        this.superAdminEmail = superAdminEmail;
     }
 
     @PostMapping("/login")
@@ -47,7 +39,7 @@ public class AuthController {
         if (userRepository.count() == 0) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
-                    "Aucun compte Directeur / Manager n’a pas encore été créé. Cliquez sur « Créer le Directeur / Manager ».");
+                    "Aucun compte n’est disponible. Demandez une invitation à l’administrateur.");
         }
 
         User user = userRepository.findByEmailIgnoreCase(request.email())
@@ -65,7 +57,6 @@ public class AuthController {
                 AuthenticatedUserService.INACTIVE_ACCOUNT_MESSAGE);
         }
 
-        UserRole authenticatedRole = isSuperAdmin(user.getEmail()) ? UserRole.SUPER_ADMIN : user.getRole();
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("itc-innovation")
@@ -73,7 +64,7 @@ public class AuthController {
                 .expiresAt(now.plus(8, ChronoUnit.HOURS))
                 .subject(user.getId().toString())
                 .claim("email", user.getEmail())
-                .claim("role", authenticatedRole.name())
+                .claim("role", user.getRole().name())
                 .build();
 
         String token = jwtEncoder.encode(
@@ -85,10 +76,6 @@ public class AuthController {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getEmail(),
-                authenticatedRole);
-    }
-
-    private boolean isSuperAdmin(String email) {
-        return !superAdminEmail.isBlank() && email.equalsIgnoreCase(superAdminEmail.trim());
+                user.getRole());
     }
 }

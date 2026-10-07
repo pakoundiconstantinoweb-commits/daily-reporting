@@ -55,6 +55,8 @@ set SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/itc_innovation
 set SPRING_DATASOURCE_USERNAME=postgres
 set DB_PASSWORD=mot-de-passe-postgres
 set JWT_SECRET=cle-secrete-aleatoire-d-au-moins-32-octets
+set SUPER_ADMIN_EMAIL=adresse-du-super-admin
+set SUPER_ADMIN_PASSWORD=secret-fort-a-generer
 ```
 
 Sous PowerShell :
@@ -64,9 +66,11 @@ $env:SPRING_DATASOURCE_URL = "jdbc:postgresql://localhost:5432/itc_innovation"
 $env:SPRING_DATASOURCE_USERNAME = "postgres"
 $env:DB_PASSWORD = "mot-de-passe-postgres"
 $env:JWT_SECRET = "cle-secrete-aleatoire-d-au-moins-32-octets"
+$env:SUPER_ADMIN_EMAIL = "adresse-du-super-admin"
+$env:SUPER_ADMIN_PASSWORD = "secret-fort-a-generer"
 ```
 
-Pour créer le compte initial du Directeur / Manager, les variables `BOOTSTRAP_MANAGER_EMAIL`, `BOOTSTRAP_MANAGER_PASSWORD`, `BOOTSTRAP_MANAGER_FIRST_NAME` et `BOOTSTRAP_MANAGER_LAST_NAME` sont facultatives.
+Le compte super-administrateur est provisionné par le backend avec ces deux variables. Configure en production un nouveau mot de passe fort dans les paramètres privés de Render ; ne place jamais de secret dans Git. Le super-administrateur peut gérer sa propre équipe et créer des invitations Manager à usage unique, valables 24 heures.
 
 ## Démarrage local
 
@@ -74,10 +78,10 @@ Lance PostgreSQL et vérifie que la base `itc_innovation` existe. Dans un premie
 
 ```cmd
 cd backend
-mvnw.cmd spring-boot:run
+powershell -ExecutionPolicy Bypass -File .\start-local.ps1
 ```
 
-L'API est disponible sur `http://localhost:8080`.
+Le script demande les mots de passe locaux sans les enregistrer dans le dépôt. L'adresse du super-administrateur local par défaut est `pakoundiconstantinoweb@gmail.com`. L'API est disponible sur `http://localhost:8080`.
 
 Dans un second terminal, depuis la racine du dépôt, installe et démarre Angular :
 

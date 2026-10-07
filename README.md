@@ -17,7 +17,8 @@ Le frontend Angular et le backend Spring Boot sont regroupés dans le même dép
 ## Fonctionnalités
 
 - Connexion sécurisée par email, mot de passe et JWT
-- Création initiale du compte Directeur / Manager
+- Création des comptes Directeur / Manager uniquement sur invitation du super-administrateur
+- Compte super-administrateur provisionné côté backend, sans inscription publique
 - Création, activation et désactivation des comptes employés
 - Reportings journaliers avec brouillons modifiables et confirmation avant envoi
 - Historique personnel pour les employés
@@ -52,7 +53,10 @@ set SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/itc_innovation
 set SPRING_DATASOURCE_USERNAME=postgres
 set DB_PASSWORD=mot-de-passe-postgres
 set JWT_SECRET=cle-secrete-aleatoire-d-au-moins-32-octets
-set SUPER_ADMIN_EMAIL=adresse-du-manager-existant@example.com
+set SUPER_ADMIN_EMAIL=adresse-du-super-admin
+set SUPER_ADMIN_PASSWORD=secret-fort-a-generer
+set SUPER_ADMIN_FIRST_NAME=Super
+set SUPER_ADMIN_LAST_NAME=Administrateur
 ```
 
 Sous PowerShell :
@@ -62,12 +66,15 @@ $env:SPRING_DATASOURCE_URL = "jdbc:postgresql://localhost:5432/itc_innovation"
 $env:SPRING_DATASOURCE_USERNAME = "postgres"
 $env:DB_PASSWORD = "mot-de-passe-postgres"
 $env:JWT_SECRET = "cle-secrete-aleatoire-d-au-moins-32-octets"
-$env:SUPER_ADMIN_EMAIL = "adresse-du-manager-existant@example.com"
+$env:SUPER_ADMIN_EMAIL = "adresse-du-super-admin"
+$env:SUPER_ADMIN_PASSWORD = "secret-fort-a-generer"
+$env:SUPER_ADMIN_FIRST_NAME = "Super"
+$env:SUPER_ADMIN_LAST_NAME = "Administrateur"
 ```
 
-`SUPER_ADMIN_EMAIL` doit correspondre à l'adresse d'un compte Manager existant. Ce compte reçoit les droits Super Admin à sa prochaine connexion ; aucun mot de passe n'est défini ou stocké par cette configuration. Sur Render, ajoute cette variable dans l'environnement du service backend, puis redéploie l'API.
+Le compte super-administrateur est provisionné côté backend avec les variables `SUPER_ADMIN_EMAIL` et `SUPER_ADMIN_PASSWORD`. Les variables `SUPER_ADMIN_FIRST_NAME` et `SUPER_ADMIN_LAST_NAME` sont facultatives. En production, configure ces variables dans les paramètres privés de Render ; ne place jamais le mot de passe dans le dépôt. Utilise un nouveau mot de passe fort, différent de tout mot de passe déjà partagé.
 
-Le Super Admin peut créer des invitations Manager à usage unique, valables de 1 heure à 7 jours. Les comptes Manager ne peuvent être créés qu'avec une invitation active. Pour créer le premier compte, les variables `BOOTSTRAP_MANAGER_EMAIL`, `BOOTSTRAP_MANAGER_PASSWORD`, `BOOTSTRAP_MANAGER_FIRST_NAME` et `BOOTSTRAP_MANAGER_LAST_NAME` restent facultatives.
+Une fois connecté, le super-administrateur dispose aussi de son propre espace de Manager (équipe et reportings) et de la section « Invitations ». Chaque invitation crée un lien aléatoire à usage unique, valable 24 heures ; le lien peut être révoqué avant son utilisation. La route de création de compte est protégée par la validation de cette invitation.
 
 ## Démarrage local
 
@@ -75,10 +82,10 @@ Dans un premier terminal, démarre l'API :
 
 ```bat
 cd itc-innovation-backend
-mvnw.cmd spring-boot:run
+powershell -ExecutionPolicy Bypass -File .\start-local.ps1
 ```
 
-L'API est disponible sur `http://localhost:8080`.
+Le script demande le mot de passe PostgreSQL local et un nouveau mot de passe super-administrateur (sans les afficher ni les enregistrer dans le dépôt). L'adresse locale par défaut est `pakoundiconstantinoweb@gmail.com` ; elle peut être remplacée en définissant `SUPER_ADMIN_EMAIL` avant le lancement. L'API est disponible sur `http://localhost:8080`.
 
 Dans un deuxième terminal, depuis le dossier frontend :
 

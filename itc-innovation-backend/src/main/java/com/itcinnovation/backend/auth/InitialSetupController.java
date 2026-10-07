@@ -18,7 +18,7 @@ import com.itcinnovation.backend.user.UserRepository;
 import com.itcinnovation.backend.user.UserResponse;
 import com.itcinnovation.backend.user.UserRole;
 import com.itcinnovation.backend.user.UserStatus;
-import com.itcinnovation.backend.invitation.ManagerInvitationService;
+import com.itcinnovation.backend.managerinvite.ManagerSignupInvitationService;
 
 import jakarta.validation.Valid;
 
@@ -28,12 +28,12 @@ public class InitialSetupController {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final ManagerInvitationService invitationService;
+    private final ManagerSignupInvitationService invitationService;
 
     public InitialSetupController(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            ManagerInvitationService invitationService) {
+            ManagerSignupInvitationService invitationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.invitationService = invitationService;
@@ -46,13 +46,13 @@ public class InitialSetupController {
         String email = request.email().trim().toLowerCase(Locale.ROOT);
         var existingUser = userRepository.findByEmailIgnoreCase(email);
         if (existingUser.isPresent()) {
-            String message = existingUser.get().getRole() == UserRole.MANAGER
+            String message = existingUser.get().getRole().canManageTeam()
                     ? "Un compte Directeur / Manager existe déjà avec cette adresse e-mail."
                     : "Cette adresse e-mail est déjà utilisée par un autre compte.";
             throw new ResponseStatusException(HttpStatus.CONFLICT, message);
         }
-        invitationService.consume(request.invitationToken());
 
+        invitationService.consume(request.invitationToken());
         User manager = new User();
         manager.setFirstName(request.firstName().trim());
         manager.setLastName(request.lastName().trim());

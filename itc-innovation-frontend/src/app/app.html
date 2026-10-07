@@ -1,49 +1,6 @@
 <main class="shell">
   @if (user(); as profile) {
-    @if (profile.role === 'SUPER_ADMIN') {
-      <section class="workspace super-admin-workspace">
-        <header class="workspace-heading">
-          <div><p class="eyebrow">Espace Super Admin</p><h1>Invitations Manager</h1><p>Crée des liens à usage unique et à durée limitée.</p></div>
-          <button type="button" class="secondary-action" (click)="logout()">Se déconnecter</button>
-        </header>
-        @if (invitationError()) { <p class="error" role="alert">{{ invitationError() }}</p> }
-        <section class="super-admin-card" aria-labelledby="invitation-create-title">
-          <h2 id="invitation-create-title">Créer une invitation</h2>
-          <p>Le lien sera visible une seule fois. Il ne pourra créer qu’un seul compte Manager.</p>
-          <form class="super-admin-invitation-form" (ngSubmit)="createManagerInvitation()">
-            <label for="invitation-validity">Durée de validité</label>
-            <select id="invitation-validity" name="invitationHours" [ngModel]="invitationHours()" (ngModelChange)="invitationHours.set($event)">
-              <option [ngValue]="1">1 heure</option>
-              <option [ngValue]="6">6 heures</option>
-              <option [ngValue]="24">24 heures</option>
-              <option [ngValue]="48">48 heures</option>
-              <option [ngValue]="168">7 jours</option>
-            </select>
-            <button type="submit" class="primary-button">Générer le lien temporaire</button>
-          </form>
-          @if (invitationNotice()) { <p class="success" role="status">{{ invitationNotice() }}</p> }
-          @if (invitationLink()) {
-            <label for="generated-invitation-link">Lien à transmettre au Manager</label>
-            <div class="generated-invitation-link">
-              <input id="generated-invitation-link" type="url" readonly [value]="invitationLink()">
-              <button type="button" class="secondary-action" (click)="copyManagerInvitation()">Copier le lien</button>
-            </div>
-          }
-        </section>
-        <section class="super-admin-card" aria-labelledby="invitation-list-title">
-          <div class="invitation-list-heading"><h2 id="invitation-list-title">Invitations</h2><button type="button" class="secondary-action" (click)="loadManagerInvitations()">Actualiser</button></div>
-          @if (invitationsLoading()) { <p class="muted">Chargement des invitations…</p> }
-          @for (invitation of invitations(); track invitation.id) {
-            <article class="invitation-row">
-              <div><strong>{{ invitationStatusLabel(invitation.status) }}</strong><small>Expire le {{ invitation.expiresAt | date:'dd/MM/yyyy à HH:mm' }}</small></div>
-              @if (invitation.status === 'ACTIVE') { <button type="button" class="secondary-action" (click)="revokeManagerInvitation(invitation)">Révoquer</button> }
-            </article>
-          } @empty {
-            @if (!invitationsLoading()) { <p class="muted">Aucune invitation créée.</p> }
-          }
-        </section>
-      </section>
-    } @else if (profile.role === 'EMPLOYEE') {
+    @if (profile.role === 'EMPLOYEE') {
       <aside class="employee-sidebar" aria-label="Navigation employé">
         <div class="sidebar-brand"><span class="brand-mark">DR</span><div><strong>Daily Reporting</strong><small>REPORTING</small></div></div>
         <p class="sidebar-label">ESPACE EMPLOYÉ</p>
@@ -121,11 +78,11 @@
         <aside class="manager-sidebar" aria-label="Navigation manager">
           <div class="sidebar-brand"><span class="brand-mark">DR</span><div><strong>Daily Reporting</strong><small>REPORTING</small></div></div>
           <p class="sidebar-label">ESPACE DIRECTION</p>
-          <nav class="sidebar-nav" aria-label="Navigation manager"><button type="button" [class.active]="managerSection() === 'reports'" (click)="managerSection.set('reports')"><span>R</span>Reportings</button><button type="button" [class.active]="managerSection() === 'employees'" (click)="managerSection.set('employees')"><span>E</span>Employés</button></nav>
-          <div class="sidebar-account"><div class="account-avatar">{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</div><div class="account-name"><strong>{{ profile.firstName }} {{ profile.lastName }}</strong><small>Directeur / Manager</small></div><button type="button" class="sidebar-profile-link" [class.active]="managerSection() === 'profile'" [attr.aria-current]="managerSection() === 'profile' ? 'page' : null" (click)="openProfile()"><span aria-hidden="true">P</span>Mon profil</button><button type="button" class="sidebar-logout" (click)="logout()">Se déconnecter</button></div>
+          <nav class="sidebar-nav" aria-label="Navigation manager"><button type="button" [class.active]="managerSection() === 'reports'" (click)="managerSection.set('reports')"><span>R</span>Reportings</button><button type="button" [class.active]="managerSection() === 'employees'" (click)="managerSection.set('employees')"><span>E</span>Employés</button>@if (profile.role === 'SUPER_ADMIN') { <button type="button" [class.active]="managerSection() === 'invitations'" (click)="managerSection.set('invitations')"><span>I</span>Invitations</button> }</nav>
+          <div class="sidebar-account"><div class="account-avatar">{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</div><div class="account-name"><strong>{{ profile.firstName }} {{ profile.lastName }}</strong><small>{{ profile.role === 'SUPER_ADMIN' ? 'Super-administrateur · Manager' : 'Directeur / Manager' }}</small></div><button type="button" class="sidebar-profile-link" [class.active]="managerSection() === 'profile'" [attr.aria-current]="managerSection() === 'profile' ? 'page' : null" (click)="openProfile()"><span aria-hidden="true">P</span>Mon profil</button><button type="button" class="sidebar-logout" (click)="logout()">Se déconnecter</button></div>
         </aside>
         <div class="manager-main">
-          <header class="manager-header"><div><p class="eyebrow">Espace Directeur / Manager</p>@if (managerSection() === 'reports') {<h1>Suivi des reportings journaliers de l'équipe</h1>} @else if (managerSection() === 'employees') {<h1>Employés</h1><p class="manager-subtitle">Création des comptes et gestion des accès</p>} @else {<h1>Mon profil</h1><p class="manager-subtitle">Informations du compte et sécurité</p>}</div><div class="manager-date">{{ today | date:'dd MMMM yyyy':'':'fr-FR' }}<b>{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</b></div></header>
+          <header class="manager-header"><div><p class="eyebrow">{{ profile.role === 'SUPER_ADMIN' ? 'Espace Super-administrateur' : 'Espace Directeur / Manager' }}</p>@if (managerSection() === 'reports') {<h1>Suivi des reportings journaliers de l'équipe</h1>} @else if (managerSection() === 'employees') {<h1>Employés</h1><p class="manager-subtitle">Création des comptes et gestion des accès</p>} @else if (managerSection() === 'invitations') {<h1>Invitations</h1><p class="manager-subtitle">Créer un accès Manager à usage unique, valable 24 heures</p>} @else {<h1>Mon profil</h1><p class="manager-subtitle">Informations du compte et sécurité</p>}</div><div class="manager-date">{{ today | date:'dd MMMM yyyy':'':'fr-FR' }}<b>{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</b></div></header>
           @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
           @if (managerSection() === 'reports') {
             <div class="stats-grid"><article><span>Reportings aujourd'hui</span><strong>{{ countTodayReports() }}</strong><small>sur {{ activeEmployeeCount() }} employés actifs</small></article><article><span>Total reçus</span><strong>{{ reportings().length }}</strong><small>historique conservé</small></article><article><span>Comptes actifs</span><strong>{{ activeEmployeeCount() }}</strong><small>sur {{ employees().length }}</small></article></div>
@@ -145,12 +102,26 @@
               </form>
               <div class="employee-list">@for (employee of employees(); track employee.id) {<div class="employee-row"><div><strong>{{ employee.firstName }} {{ employee.lastName }}</strong><small>{{ employee.email }}{{ employee.department ? ' · ' + employee.department : '' }}</small></div><button type="button" class="status-button" [class.inactive]="employee.status === 'INACTIVE'" (click)="toggleEmployee(employee)">{{ employee.status === 'ACTIVE' ? 'Actif · Désactiver' : 'Inactif · Réactiver' }}</button></div>} @empty {<p class="muted">Aucun employé. Créez le premier compte.</p>}</div>
             </section>
+          } @else if (managerSection() === 'invitations' && profile.role === 'SUPER_ADMIN') {
+            <section class="profile-card manager-invitation-admin" aria-labelledby="manager-invitations-title">
+              <h2 id="manager-invitations-title">Inviter un Directeur / Manager</h2>
+              <p>Chaque invitation ne peut servir qu’une fois et expire automatiquement après 24 heures.</p>
+              <button type="button" class="primary-button" [disabled]="invitationLoading()" (click)="createManagerInvitation()">{{ invitationLoading() ? 'Création en cours…' : 'Générer une invitation' }}</button>
+              @if (managerInvitation(); as invitation) {
+                <label for="manager-invitation-url">Lien à partager</label>
+                <input id="manager-invitation-url" type="url" readonly [value]="invitation.url">
+                <p>Expiration : {{ invitation.expiresAt | date:'dd/MM/yyyy à HH:mm':'':'fr-FR' }}</p>
+                <div class="invitation-actions"><button type="button" class="secondary-action" (click)="copyManagerInvitation()">Copier le lien</button><button type="button" class="secondary-action" [disabled]="invitationLoading()" (click)="revokeManagerInvitation()">Révoquer</button></div>
+              }
+              @if (invitationNotice()) { <p class="success" role="status">{{ invitationNotice() }}</p> }
+              @if (invitationError()) { <p class="error" role="alert">{{ invitationError() }}</p> }
+            </section>
           } @else {
             @if (profileLoadError()) { <p class="error" role="alert">{{ profileLoadError() }}</p> }
             <section class="profile-summary" aria-label="Compte connecté">
                 <div class="profile-summary-avatar">{{ profileFirstName().charAt(0) }}{{ profileLastName().charAt(0) }}</div>
                 <div class="profile-summary-copy"><p class="eyebrow">Compte connecté</p><h2>{{ profileFirstName() }} {{ profileLastName() }}</h2><p>{{ profileEmail() }}</p></div>
-              <span class="profile-role-badge">Directeur / Manager</span>
+              <span class="profile-role-badge">{{ profile.role === 'SUPER_ADMIN' ? 'Super-administrateur · Manager' : 'Directeur / Manager' }}</span>
             </section>
             <div class="profile-layout">
               <section class="profile-card" aria-labelledby="manager-profile-title">
@@ -164,7 +135,7 @@
                       <div><label for="manager-profile-phone">Téléphone</label><input id="manager-profile-phone" name="profilePhone" type="tel" maxlength="30" autocomplete="tel" [ngModel]="profilePhone()" (ngModelChange)="profilePhone.set($event)" placeholder="Non renseigné"></div>
                       <div><label for="manager-profile-department">Service</label><input id="manager-profile-department" name="profileDepartment" maxlength="100" [ngModel]="profileDepartment()" (ngModelChange)="profileDepartment.set($event)" placeholder="Non renseigné"></div>
                     </div>
-                    <dl class="profile-details profile-fixed-details"><div><dt>Rôle</dt><dd>Directeur / Manager</dd></div><div><dt>Statut</dt><dd>{{ account.status === 'ACTIVE' ? 'Actif' : 'Inactif' }}</dd></div></dl>
+                    <dl class="profile-details profile-fixed-details"><div><dt>Rôle</dt><dd>{{ account.role === 'SUPER_ADMIN' ? 'Super-administrateur · Manager' : 'Directeur / Manager' }}</dd></div><div><dt>Statut</dt><dd>{{ account.status === 'ACTIVE' ? 'Actif' : 'Inactif' }}</dd></div></dl>
                     <button type="submit" class="primary-button" [disabled]="profileSaving()">{{ profileSaving() ? 'Enregistrement…' : 'Enregistrer les modifications' }}</button>
                     @if (profileSaveNotice()) { <p class="success" role="status">{{ profileSaveNotice() }}</p> }
                     @if (profileSaveError()) { <p class="error" role="alert">{{ profileSaveError() }}</p> }

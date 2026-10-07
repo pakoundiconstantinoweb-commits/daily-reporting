@@ -40,22 +40,14 @@ interface ProfileInformation {
   email: string;
   phone: string | null;
   department: string | null;
-  role: 'MANAGER' | 'EMPLOYEE';
+  role: 'SUPER_ADMIN' | 'MANAGER' | 'EMPLOYEE';
   status: 'ACTIVE' | 'INACTIVE';
 }
 
-interface ManagerInvitation {
-  id: number;
-  createdAt: string;
-  expiresAt: string;
-  usedAt: string | null;
-  revokedAt: string | null;
-  status: 'ACTIVE' | 'USED' | 'EXPIRED' | 'REVOKED';
-}
-
 interface CreatedManagerInvitation {
-  token: string;
+  id: number;
   expiresAt: string;
+  url: string;
 }
 
 @Component({
@@ -88,7 +80,7 @@ export class App {
   protected readonly employeePhone = signal('');
   protected readonly employeePhoneCountryCode = signal('+228');
   protected readonly countryCodes = COUNTRY_CODES;
-  protected readonly managerSection = signal<'reports' | 'employees' | 'profile'>('reports');
+  protected readonly managerSection = signal<'reports' | 'employees' | 'invitations' | 'profile'>('reports');
   protected readonly employeeSection = signal<'report' | 'history' | 'profile'>('report');
   protected readonly profileInformation = signal<ProfileInformation | null>(null);
   protected readonly profileLoadError = signal('');
@@ -110,12 +102,10 @@ export class App {
   protected readonly passwordError = signal('');
   protected readonly submitConfirmationOpen = signal(false);
   protected readonly submissionInProgress = signal(false);
-  protected readonly invitationHours = signal(24);
-  protected readonly invitations = signal<ManagerInvitation[]>([]);
-  protected readonly invitationsLoading = signal(false);
+  protected readonly managerInvitation = signal<CreatedManagerInvitation | null>(null);
+  protected readonly invitationLoading = signal(false);
   protected readonly invitationError = signal('');
   protected readonly invitationNotice = signal('');
-  protected readonly invitationLink = signal('');
 
   constructor() {
     const storedProfile = localStorage.getItem('itc_profile');
@@ -142,10 +132,10 @@ export class App {
   }
 
   protected openProfile(): void {
-    if (this.user()?.role === 'MANAGER') {
-      this.managerSection.set('profile');
-    } else {
+    if (this.user()?.role === 'EMPLOYEE') {
       this.employeeSection.set('profile');
+    } else {
+      this.managerSection.set('profile');
     }
     this.profileInformation.set(null);
     this.profileLoadError.set('');
@@ -207,6 +197,60 @@ export class App {
     });
   }
 
+  protected createManagerInvitation(): void {
+    this.invitationError.set('');
+    this.invitationNotice.set('');
+    this.managerInvitation.set(null);
+    this.invitationLoading.set(true);
+    this.http.post<{ id: number; token: string; expiresAt: string }>(
+      '/api/super-admin/invitations', {}
+    ).subscribe({
+      next: invitation => {
+        this.managerInvitation.set({
+          id: invitation.id,
+          expiresAt: invitation.expiresAt,
+          url: `${globalThis.location.origin}/manager-invite/${encodeURIComponent(invitation.token)}`,
+        });
+        this.invitationNotice.set('Invitation créée. Elle expirera dans 24 heures ou après son utilisation.');
+        this.invitationLoading.set(false);
+      },
+      error: (response: HttpErrorResponse) => {
+        this.invitationError.set(apiErrorMessage(response, 'L’invitation n’a pas pu être créée.'));
+        this.invitationLoading.set(false);
+      },
+    });
+  }
+
+  protected copyManagerInvitation(): void {
+    const invitation = this.managerInvitation();
+    if (!invitation) return;
+    navigator.clipboard.writeText(invitation.url).then(
+      () => this.invitationNotice.set('Lien copié dans le presse-papiers.'),
+      () => this.invitationError.set('Copie impossible. Sélectionnez et copiez le lien affiché.')
+    );
+  }
+
+  protected revokeManagerInvitation(): void {
+    const invitation = this.managerInvitation();
+    if (!invitation) return;
+    this.invitationError.set('');
+    this.invitationNotice.set('');
+    this.invitationLoading.set(true);
+    this.http.patch<{ revoked: boolean }>(
+      `/api/super-admin/invitations/${invitation.id}/revoke`, {}
+    ).subscribe({
+      next: () => {
+        this.managerInvitation.set(null);
+        this.invitationNotice.set('Invitation révoquée.');
+        this.invitationLoading.set(false);
+      },
+      error: (response: HttpErrorResponse) => {
+        this.invitationError.set(apiErrorMessage(response, 'L’invitation n’a pas pu être révoquée.'));
+        this.invitationLoading.set(false);
+      },
+    });
+  }
+
   protected togglePasswordVisibility(field: 'current' | 'new' | 'confirm' | 'employee'): void {
     if (field === 'current') this.currentPasswordVisible.update(visible => !visible);
     if (field === 'new') this.newPasswordVisible.update(visible => !visible);
@@ -239,62 +283,6 @@ export class App {
       error: (response: HttpErrorResponse) => this.passwordError.set(
         apiErrorMessage(response, 'Le mot de passe n’a pas pu être modifié.')),
     });
-  }
-
-  protected createManagerInvitation(): void {
-    this.invitationError.set('');
-    this.invitationNotice.set('');
-    this.invitationLink.set('');
-    this.http.post<CreatedManagerInvitation>('/api/super-admin/invitations', {
-      expiresInHours: this.invitationHours(),
-    }).subscribe({
-      next: invitation => {
-        const link = new URL(
-          '/manager-access-c6ea546063f7ae11456a402557415f6b',
-          window.location.origin);
-        link.hash = new URLSearchParams({ invitation: invitation.token }).toString();
-        this.invitationLink.set(link.toString());
-        this.invitationNotice.set(
-          `Invitation créée. Elle expire le ${new Intl.DateTimeFormat('fr-FR', {
-            dateStyle: 'short',
-            timeStyle: 'short',
-          }).format(new Date(invitation.expiresAt))}.`);
-        this.loadManagerInvitations();
-      },
-      error: (response: HttpErrorResponse) => this.invitationError.set(
-        apiErrorMessage(response, 'Le lien d’invitation n’a pas pu être créé.')),
-    });
-  }
-
-  protected copyManagerInvitation(): void {
-    const link = this.invitationLink();
-    if (!link) return;
-    navigator.clipboard.writeText(link).then(
-      () => this.invitationNotice.set('Lien copié. Transmets-le uniquement au Manager concerné.'),
-      () => this.invitationError.set(
-        'La copie automatique est indisponible. Sélectionne et copie le lien affiché.'));
-  }
-
-  protected revokeManagerInvitation(invitation: ManagerInvitation): void {
-    this.invitationError.set('');
-    this.http.patch<ManagerInvitation>(
-      `/api/super-admin/invitations/${invitation.id}/revoke`, {}).subscribe({
-      next: () => {
-        this.invitationNotice.set('Invitation révoquée.');
-        this.loadManagerInvitations();
-      },
-      error: (response: HttpErrorResponse) => this.invitationError.set(
-        apiErrorMessage(response, 'L’invitation n’a pas pu être révoquée.')),
-    });
-  }
-
-  protected invitationStatusLabel(status: ManagerInvitation['status']): string {
-    switch (status) {
-      case 'ACTIVE': return 'Active';
-      case 'USED': return 'Utilisée';
-      case 'EXPIRED': return 'Expirée';
-      case 'REVOKED': return 'Révoquée';
-    }
   }
 
   protected saveDraft(): void {
@@ -484,25 +472,8 @@ export class App {
   }
 
   private loadWorkspace(profile: AuthResponse): void {
-    if (profile.role === 'MANAGER') { this.searchReports(); this.loadEmployees(); }
-    else if (profile.role === 'EMPLOYEE') this.loadEmployeeReports();
-    else this.loadManagerInvitations();
-  }
-
-  protected loadManagerInvitations(): void {
-    this.invitationsLoading.set(true);
-    this.invitationError.set('');
-    this.http.get<ManagerInvitation[]>('/api/super-admin/invitations').subscribe({
-      next: invitations => {
-        this.invitations.set(invitations);
-        this.invitationsLoading.set(false);
-      },
-      error: (response: HttpErrorResponse) => {
-        this.invitationError.set(
-          apiErrorMessage(response, 'La liste des invitations n’a pas pu être chargée.'));
-        this.invitationsLoading.set(false);
-      },
-    });
+    if (profile.role !== 'EMPLOYEE') { this.searchReports(); this.loadEmployees(); }
+    else this.loadEmployeeReports();
   }
 
   private loadEmployees(): void {

@@ -26,10 +26,8 @@ app:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:4300}
   jwt:
     secret: ${APP_JWT_SECRET:${JWT_SECRET}}
-  super-admin:
+  bootstrap-super-admin:
     email: ${SUPER_ADMIN_EMAIL:}
-  bootstrap-manager:
-    email: ${BOOTSTRAP_MANAGER_EMAIL:}
-    password: ${BOOTSTRAP_MANAGER_PASSWORD:}
-    first-name: ${BOOTSTRAP_MANAGER_FIRST_NAME:}
-    last-name: ${BOOTSTRAP_MANAGER_LAST_NAME:}
+    password: ${SUPER_ADMIN_PASSWORD:}
+    first-name: ${SUPER_ADMIN_FIRST_NAME:Super}
+    last-name: ${SUPER_ADMIN_LAST_NAME:Admin}

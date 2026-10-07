@@ -23,8 +23,9 @@ describe('App', () => {
     expect(compiled.querySelector('form')).toBeTruthy();
   });
 
-  it('should expose manager signup only through the unguessable route', () => {
-    expect(routes.some(route => route.path === 'manager-access-c6ea546063f7ae11456a402557415f6b')).toBe(true);
+  it('should expose manager signup only through an invitation token route', () => {
+    expect(routes.some(route => route.path === 'manager-invite/:token')).toBe(true);
+    expect(routes.some(route => route.path === 'manager-access-c6ea546063f7ae11456a402557415f6b')).toBe(false);
     expect(routes.some(route => route.path === 'admin/create-director')).toBe(false);
   });
 });

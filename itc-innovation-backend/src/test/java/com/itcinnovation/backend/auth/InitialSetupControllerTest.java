@@ -16,27 +16,27 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.itcinnovation.backend.managerinvite.ManagerSignupInvitationService;
 import com.itcinnovation.backend.user.CreateManagerRequest;
 import com.itcinnovation.backend.user.User;
 import com.itcinnovation.backend.user.UserRepository;
 import com.itcinnovation.backend.user.UserRole;
 import com.itcinnovation.backend.user.UserStatus;
-import com.itcinnovation.backend.invitation.ManagerInvitationService;
 
 class InitialSetupControllerTest {
 
     @Test
-    void createsAManagerWithoutAnAdminKey() {
+    void createsAManagerAndConsumesItsInvitation() {
         UserRepository userRepository = mock(UserRepository.class);
         PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
-        ManagerInvitationService invitationService = mock(ManagerInvitationService.class);
+        ManagerSignupInvitationService invitationService = mock(ManagerSignupInvitationService.class);
         when(userRepository.findByEmailIgnoreCase(anyString())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
         InitialSetupController controller = new InitialSetupController(userRepository, passwordEncoder, invitationService);
 
         var created = controller.createManager(
-                new CreateManagerRequest(" First ", " Manager ", "Manager@Example.com", "password123", "  ", "invite-token"));
+                new CreateManagerRequest(" First ", " Manager ", "Manager@Example.com", "password123", "  ", "valid-token"));
 
         assertEquals("First", created.firstName());
         assertEquals("Manager", created.lastName());
@@ -45,14 +45,14 @@ class InitialSetupControllerTest {
         assertEquals(UserStatus.ACTIVE, created.status());
         verify(userRepository).findByEmailIgnoreCase("manager@example.com");
         verify(userRepository).save(any(User.class));
+        verify(invitationService).consume("valid-token");
         verify(userRepository, never()).saveAll(any());
-        verify(invitationService).consume("invite-token");
     }
 
     @Test
     void createsAnotherManagerWhenOtherManagersAlreadyExist() {
         UserRepository userRepository = mock(UserRepository.class);
-        ManagerInvitationService invitationService = mock(ManagerInvitationService.class);
+        ManagerSignupInvitationService invitationService = mock(ManagerSignupInvitationService.class);
         when(userRepository.findByEmailIgnoreCase(anyString())).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
         InitialSetupController controller = new InitialSetupController(
@@ -62,7 +62,7 @@ class InitialSetupControllerTest {
 
         assertEquals(UserRole.MANAGER, created.role());
         verify(userRepository).save(any(User.class));
-        verify(invitationService).consume("invite-token");
+        verify(invitationService).consume("valid-token");
     }
 
     @Test
@@ -72,7 +72,7 @@ class InitialSetupControllerTest {
         existingManager.setRole(UserRole.MANAGER);
         when(userRepository.findByEmailIgnoreCase("manager@example.com")).thenReturn(Optional.of(existingManager));
         InitialSetupController controller = new InitialSetupController(
-                userRepository, mock(PasswordEncoder.class), mock(ManagerInvitationService.class));
+                userRepository, mock(PasswordEncoder.class), mock(ManagerSignupInvitationService.class));
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
                 () -> controller.createManager(request()));
@@ -84,6 +84,6 @@ class InitialSetupControllerTest {
     }
 
     private static CreateManagerRequest request() {
-        return new CreateManagerRequest("First", "Manager", "manager@example.com", "password123", null, "invite-token");
+        return new CreateManagerRequest("First", "Manager", "manager@example.com", "password123", null, "valid-token");
     }
 }

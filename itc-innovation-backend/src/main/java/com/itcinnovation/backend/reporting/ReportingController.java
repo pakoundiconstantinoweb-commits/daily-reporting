@@ -118,7 +118,7 @@ public class ReportingController {
 
     private User currentManager(Authentication authentication) {
         User manager = currentUser(authentication);
-        if (manager.getRole() != com.itcinnovation.backend.user.UserRole.MANAGER) {
+        if (!manager.getRole().canManageTeam()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Compte Directeur / Manager requis");
         }
         return manager;

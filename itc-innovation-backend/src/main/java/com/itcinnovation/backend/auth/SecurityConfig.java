@@ -36,8 +36,6 @@ import com.itcinnovation.backend.ApiErrorResponse;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private static final String MANAGER_ROLE = "MANAGER";
-
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;
 
@@ -62,11 +60,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                     .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/setup/manager").permitAll()
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/setup/invitations/**").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/super-admin/**").hasRole("SUPER_ADMIN")
-                    .requestMatchers("/api/manager/**").hasRole(MANAGER_ROLE)
-                    .requestMatchers("/api/reports/manager").hasRole(MANAGER_ROLE)
-                    .requestMatchers("/api/reports/manager/**").hasRole(MANAGER_ROLE)
+                    .requestMatchers("/api/manager/**").hasAnyRole("MANAGER", "SUPER_ADMIN")
+                    .requestMatchers("/api/reports/manager").hasAnyRole("MANAGER", "SUPER_ADMIN")
+                    .requestMatchers("/api/reports/manager/**").hasAnyRole("MANAGER", "SUPER_ADMIN")
                     .anyRequest().authenticated())
                     .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(apiAuthenticationEntryPoint)

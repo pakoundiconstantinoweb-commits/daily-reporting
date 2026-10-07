@@ -1,10 +1,12 @@
 <main class="admin-page">
   <section class="admin-card" aria-labelledby="admin-title">
-    <p class="admin-eyebrow">Espace Manager</p>
-    <h1 id="admin-title">Créer le Directeur / Manager</h1>
-    <p class="admin-description">Créez votre compte Manager avec l’invitation qui vous a été transmise.</p>
+    <p class="admin-eyebrow">Invitation sécurisée</p>
+    <h1 id="admin-title">Créer votre compte Manager</h1>
+    <p class="admin-description">Cette inscription est réservée aux personnes qui disposent d’une invitation valide du super-administrateur.</p>
 
-    @if (invitationToken()) {
+    @if (validatingInvitation()) {
+      <p class="form-message" role="status">Vérification de l’invitation…</p>
+    } @else if (invitationValid()) {
     <form (ngSubmit)="createManager()">
       <div class="form-grid">
         <div><label for="first-name">Prénom</label><input id="first-name" name="firstName" autocomplete="given-name" required maxlength="80" [ngModel]="firstName()" (ngModelChange)="firstName.set($event)"></div>
@@ -15,10 +17,10 @@
         <div class="wide"><label for="confirm-password">Confirmer le mot de passe</label><input id="confirm-password" name="confirmPassword" type="password" autocomplete="new-password" required minlength="8" maxlength="120" [ngModel]="confirmPassword()" (ngModelChange)="confirmPassword.set($event)"></div>
       </div>
 
-      @if (error()) { <p class="form-message error" role="alert">{{ error() }}</p> }
-      @if (success()) { <p class="form-message success" role="status">{{ success() }}</p> }
       <button type="submit" [disabled]="loading()">{{ loading() ? 'Création en cours…' : 'Créer le compte Manager' }}</button>
     </form>
-    } @else if (error()) { <p class="form-message error" role="alert">{{ error() }}</p> }
+    }
+    @if (error()) { <p class="form-message error" role="alert">{{ error() }}</p> }
+    @if (success()) { <p class="form-message success" role="status">{{ success() }}</p> }
   </section>
 </main>

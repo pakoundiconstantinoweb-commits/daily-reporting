@@ -75,7 +75,7 @@ public class ManagerUserController {
     private User currentManager(Authentication authentication) {
         try {
             return userRepository.findById(Long.valueOf(authentication.getName()))
-                    .filter(user -> user.getRole() == UserRole.MANAGER)
+                    .filter(user -> user.getRole().canManageTeam())
                     .orElseThrow(() -> new ResponseStatusException(
                             HttpStatus.FORBIDDEN, "Compte Directeur / Manager introuvable"));
         } catch (NumberFormatException exception) {
