@@ -417,3 +417,4 @@ form { display: grid; gap: .65rem; } label { margin-top: .8rem; color: #42544c; 
 	.report-date-filter button { display: block; box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; }
 	.team-panel > .muted { margin-inline: 1.2rem; overflow-wrap: anywhere; }
 }
+.manager-report { grid-template-columns: minmax(0, 1fr); }
