@@ -52,6 +52,7 @@ set SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/itc_innovation
 set SPRING_DATASOURCE_USERNAME=postgres
 set DB_PASSWORD=mot-de-passe-postgres
 set JWT_SECRET=cle-secrete-aleatoire-d-au-moins-32-octets
+set SUPER_ADMIN_EMAIL=adresse-du-manager-existant@example.com
 ```
 
 Sous PowerShell :
@@ -61,9 +62,12 @@ $env:SPRING_DATASOURCE_URL = "jdbc:postgresql://localhost:5432/itc_innovation"
 $env:SPRING_DATASOURCE_USERNAME = "postgres"
 $env:DB_PASSWORD = "mot-de-passe-postgres"
 $env:JWT_SECRET = "cle-secrete-aleatoire-d-au-moins-32-octets"
+$env:SUPER_ADMIN_EMAIL = "adresse-du-manager-existant@example.com"
 ```
 
-Pour créer le compte initial du Directeur / Manager, les variables `BOOTSTRAP_MANAGER_EMAIL`, `BOOTSTRAP_MANAGER_PASSWORD`, `BOOTSTRAP_MANAGER_FIRST_NAME` et `BOOTSTRAP_MANAGER_LAST_NAME` sont facultatives.
+`SUPER_ADMIN_EMAIL` doit correspondre à l'adresse d'un compte Manager existant. Ce compte reçoit les droits Super Admin à sa prochaine connexion ; aucun mot de passe n'est défini ou stocké par cette configuration. Sur Render, ajoute cette variable dans l'environnement du service backend, puis redéploie l'API.
+
+Le Super Admin peut créer des invitations Manager à usage unique, valables de 1 heure à 7 jours. Les comptes Manager ne peuvent être créés qu'avec une invitation active. Pour créer le premier compte, les variables `BOOTSTRAP_MANAGER_EMAIL`, `BOOTSTRAP_MANAGER_PASSWORD`, `BOOTSTRAP_MANAGER_FIRST_NAME` et `BOOTSTRAP_MANAGER_LAST_NAME` restent facultatives.
 
 ## Démarrage local
 

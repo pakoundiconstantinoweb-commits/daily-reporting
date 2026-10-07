@@ -21,6 +21,7 @@ import com.itcinnovation.backend.user.User;
 import com.itcinnovation.backend.user.UserRepository;
 import com.itcinnovation.backend.user.UserRole;
 import com.itcinnovation.backend.user.UserStatus;
+import com.itcinnovation.backend.invitation.ManagerInvitationService;
 
 class InitialSetupControllerTest {
 
@@ -28,13 +29,14 @@ class InitialSetupControllerTest {
     void createsAManagerWithoutAnAdminKey() {
         UserRepository userRepository = mock(UserRepository.class);
         PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        ManagerInvitationService invitationService = mock(ManagerInvitationService.class);
         when(userRepository.findByEmailIgnoreCase(anyString())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        InitialSetupController controller = new InitialSetupController(userRepository, passwordEncoder);
+        InitialSetupController controller = new InitialSetupController(userRepository, passwordEncoder, invitationService);
 
         var created = controller.createManager(
-                new CreateManagerRequest(" First ", " Manager ", "Manager@Example.com", "password123", "  "));
+                new CreateManagerRequest(" First ", " Manager ", "Manager@Example.com", "password123", "  ", "invite-token"));
 
         assertEquals("First", created.firstName());
         assertEquals("Manager", created.lastName());
@@ -44,19 +46,23 @@ class InitialSetupControllerTest {
         verify(userRepository).findByEmailIgnoreCase("manager@example.com");
         verify(userRepository).save(any(User.class));
         verify(userRepository, never()).saveAll(any());
+        verify(invitationService).consume("invite-token");
     }
 
     @Test
     void createsAnotherManagerWhenOtherManagersAlreadyExist() {
         UserRepository userRepository = mock(UserRepository.class);
+        ManagerInvitationService invitationService = mock(ManagerInvitationService.class);
         when(userRepository.findByEmailIgnoreCase(anyString())).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        InitialSetupController controller = new InitialSetupController(userRepository, mock(PasswordEncoder.class));
+        InitialSetupController controller = new InitialSetupController(
+                userRepository, mock(PasswordEncoder.class), invitationService);
 
         var created = controller.createManager(request());
 
         assertEquals(UserRole.MANAGER, created.role());
         verify(userRepository).save(any(User.class));
+        verify(invitationService).consume("invite-token");
     }
 
     @Test
@@ -65,7 +71,8 @@ class InitialSetupControllerTest {
         User existingManager = new User();
         existingManager.setRole(UserRole.MANAGER);
         when(userRepository.findByEmailIgnoreCase("manager@example.com")).thenReturn(Optional.of(existingManager));
-        InitialSetupController controller = new InitialSetupController(userRepository, mock(PasswordEncoder.class));
+        InitialSetupController controller = new InitialSetupController(
+                userRepository, mock(PasswordEncoder.class), mock(ManagerInvitationService.class));
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
                 () -> controller.createManager(request()));
@@ -77,6 +84,6 @@ class InitialSetupControllerTest {
     }
 
     private static CreateManagerRequest request() {
-        return new CreateManagerRequest("First", "Manager", "manager@example.com", "password123", null);
+        return new CreateManagerRequest("First", "Manager", "manager@example.com", "password123", null, "invite-token");
     }
 }

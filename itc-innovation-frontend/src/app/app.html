@@ -1,6 +1,49 @@
 <main class="shell">
   @if (user(); as profile) {
-    @if (profile.role === 'EMPLOYEE') {
+    @if (profile.role === 'SUPER_ADMIN') {
+      <section class="workspace super-admin-workspace">
+        <header class="workspace-heading">
+          <div><p class="eyebrow">Espace Super Admin</p><h1>Invitations Manager</h1><p>Crée des liens à usage unique et à durée limitée.</p></div>
+          <button type="button" class="secondary-action" (click)="logout()">Se déconnecter</button>
+        </header>
+        @if (invitationError()) { <p class="error" role="alert">{{ invitationError() }}</p> }
+        <section class="super-admin-card" aria-labelledby="invitation-create-title">
+          <h2 id="invitation-create-title">Créer une invitation</h2>
+          <p>Le lien sera visible une seule fois. Il ne pourra créer qu’un seul compte Manager.</p>
+          <form class="super-admin-invitation-form" (ngSubmit)="createManagerInvitation()">
+            <label for="invitation-validity">Durée de validité</label>
+            <select id="invitation-validity" name="invitationHours" [ngModel]="invitationHours()" (ngModelChange)="invitationHours.set($event)">
+              <option [ngValue]="1">1 heure</option>
+              <option [ngValue]="6">6 heures</option>
+              <option [ngValue]="24">24 heures</option>
+              <option [ngValue]="48">48 heures</option>
+              <option [ngValue]="168">7 jours</option>
+            </select>
+            <button type="submit" class="primary-button">Générer le lien temporaire</button>
+          </form>
+          @if (invitationNotice()) { <p class="success" role="status">{{ invitationNotice() }}</p> }
+          @if (invitationLink()) {
+            <label for="generated-invitation-link">Lien à transmettre au Manager</label>
+            <div class="generated-invitation-link">
+              <input id="generated-invitation-link" type="url" readonly [value]="invitationLink()">
+              <button type="button" class="secondary-action" (click)="copyManagerInvitation()">Copier le lien</button>
+            </div>
+          }
+        </section>
+        <section class="super-admin-card" aria-labelledby="invitation-list-title">
+          <div class="invitation-list-heading"><h2 id="invitation-list-title">Invitations</h2><button type="button" class="secondary-action" (click)="loadManagerInvitations()">Actualiser</button></div>
+          @if (invitationsLoading()) { <p class="muted">Chargement des invitations…</p> }
+          @for (invitation of invitations(); track invitation.id) {
+            <article class="invitation-row">
+              <div><strong>{{ invitationStatusLabel(invitation.status) }}</strong><small>Expire le {{ invitation.expiresAt | date:'dd/MM/yyyy à HH:mm' }}</small></div>
+              @if (invitation.status === 'ACTIVE') { <button type="button" class="secondary-action" (click)="revokeManagerInvitation(invitation)">Révoquer</button> }
+            </article>
+          } @empty {
+            @if (!invitationsLoading()) { <p class="muted">Aucune invitation créée.</p> }
+          }
+        </section>
+      </section>
+    } @else if (profile.role === 'EMPLOYEE') {
       <aside class="employee-sidebar" aria-label="Navigation employé">
         <div class="sidebar-brand"><span class="brand-mark">DR</span><div><strong>Daily Reporting</strong><small>REPORTING</small></div></div>
         <p class="sidebar-label">ESPACE EMPLOYÉ</p>

@@ -9,6 +9,7 @@ public record CreateManagerRequest(
         @NotBlank @Size(max = 80) String lastName,
         @NotBlank @Email @Size(max = 160) String email,
         @NotBlank @Size(min = 8, max = 120) String password,
-        @Size(max = 30) String phone
+        @Size(max = 30) String phone,
+        @NotBlank @Size(max = 128) String invitationToken
 ) {
 }

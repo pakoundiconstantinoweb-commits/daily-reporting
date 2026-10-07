@@ -44,6 +44,20 @@ interface ProfileInformation {
   status: 'ACTIVE' | 'INACTIVE';
 }
 
+interface ManagerInvitation {
+  id: number;
+  createdAt: string;
+  expiresAt: string;
+  usedAt: string | null;
+  revokedAt: string | null;
+  status: 'ACTIVE' | 'USED' | 'EXPIRED' | 'REVOKED';
+}
+
+interface CreatedManagerInvitation {
+  token: string;
+  expiresAt: string;
+}
+
 @Component({
   selector: 'app-root',
   imports: [CommonModule, FormsModule, LoginComponent],
@@ -96,6 +110,12 @@ export class App {
   protected readonly passwordError = signal('');
   protected readonly submitConfirmationOpen = signal(false);
   protected readonly submissionInProgress = signal(false);
+  protected readonly invitationHours = signal(24);
+  protected readonly invitations = signal<ManagerInvitation[]>([]);
+  protected readonly invitationsLoading = signal(false);
+  protected readonly invitationError = signal('');
+  protected readonly invitationNotice = signal('');
+  protected readonly invitationLink = signal('');
 
   constructor() {
     const storedProfile = localStorage.getItem('itc_profile');
@@ -219,6 +239,62 @@ export class App {
       error: (response: HttpErrorResponse) => this.passwordError.set(
         apiErrorMessage(response, 'Le mot de passe n’a pas pu être modifié.')),
     });
+  }
+
+  protected createManagerInvitation(): void {
+    this.invitationError.set('');
+    this.invitationNotice.set('');
+    this.invitationLink.set('');
+    this.http.post<CreatedManagerInvitation>('/api/super-admin/invitations', {
+      expiresInHours: this.invitationHours(),
+    }).subscribe({
+      next: invitation => {
+        const link = new URL(
+          '/manager-access-c6ea546063f7ae11456a402557415f6b',
+          window.location.origin);
+        link.hash = new URLSearchParams({ invitation: invitation.token }).toString();
+        this.invitationLink.set(link.toString());
+        this.invitationNotice.set(
+          `Invitation créée. Elle expire le ${new Intl.DateTimeFormat('fr-FR', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+          }).format(new Date(invitation.expiresAt))}.`);
+        this.loadManagerInvitations();
+      },
+      error: (response: HttpErrorResponse) => this.invitationError.set(
+        apiErrorMessage(response, 'Le lien d’invitation n’a pas pu être créé.')),
+    });
+  }
+
+  protected copyManagerInvitation(): void {
+    const link = this.invitationLink();
+    if (!link) return;
+    navigator.clipboard.writeText(link).then(
+      () => this.invitationNotice.set('Lien copié. Transmets-le uniquement au Manager concerné.'),
+      () => this.invitationError.set(
+        'La copie automatique est indisponible. Sélectionne et copie le lien affiché.'));
+  }
+
+  protected revokeManagerInvitation(invitation: ManagerInvitation): void {
+    this.invitationError.set('');
+    this.http.patch<ManagerInvitation>(
+      `/api/super-admin/invitations/${invitation.id}/revoke`, {}).subscribe({
+      next: () => {
+        this.invitationNotice.set('Invitation révoquée.');
+        this.loadManagerInvitations();
+      },
+      error: (response: HttpErrorResponse) => this.invitationError.set(
+        apiErrorMessage(response, 'L’invitation n’a pas pu être révoquée.')),
+    });
+  }
+
+  protected invitationStatusLabel(status: ManagerInvitation['status']): string {
+    switch (status) {
+      case 'ACTIVE': return 'Active';
+      case 'USED': return 'Utilisée';
+      case 'EXPIRED': return 'Expirée';
+      case 'REVOKED': return 'Révoquée';
+    }
   }
 
   protected saveDraft(): void {
@@ -409,7 +485,24 @@ export class App {
 
   private loadWorkspace(profile: AuthResponse): void {
     if (profile.role === 'MANAGER') { this.searchReports(); this.loadEmployees(); }
-    else this.loadEmployeeReports();
+    else if (profile.role === 'EMPLOYEE') this.loadEmployeeReports();
+    else this.loadManagerInvitations();
+  }
+
+  protected loadManagerInvitations(): void {
+    this.invitationsLoading.set(true);
+    this.invitationError.set('');
+    this.http.get<ManagerInvitation[]>('/api/super-admin/invitations').subscribe({
+      next: invitations => {
+        this.invitations.set(invitations);
+        this.invitationsLoading.set(false);
+      },
+      error: (response: HttpErrorResponse) => {
+        this.invitationError.set(
+          apiErrorMessage(response, 'La liste des invitations n’a pas pu être chargée.'));
+        this.invitationsLoading.set(false);
+      },
+    });
   }
 
   private loadEmployees(): void {

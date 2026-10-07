@@ -18,6 +18,7 @@ import com.itcinnovation.backend.user.UserRepository;
 import com.itcinnovation.backend.user.UserResponse;
 import com.itcinnovation.backend.user.UserRole;
 import com.itcinnovation.backend.user.UserStatus;
+import com.itcinnovation.backend.invitation.ManagerInvitationService;
 
 import jakarta.validation.Valid;
 
@@ -27,10 +28,15 @@ public class InitialSetupController {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ManagerInvitationService invitationService;
 
-    public InitialSetupController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public InitialSetupController(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            ManagerInvitationService invitationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.invitationService = invitationService;
     }
 
     @PostMapping("/manager")
@@ -45,6 +51,7 @@ public class InitialSetupController {
                     : "Cette adresse e-mail est déjà utilisée par un autre compte.";
             throw new ResponseStatusException(HttpStatus.CONFLICT, message);
         }
+        invitationService.consume(request.invitationToken());
 
         User manager = new User();
         manager.setFirstName(request.firstName().trim());
