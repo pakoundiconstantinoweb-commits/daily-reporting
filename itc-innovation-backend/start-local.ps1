@@ -2,7 +2,10 @@ $ErrorActionPreference = 'Stop'
 
 $email = $env:SUPER_ADMIN_EMAIL
 if ([string]::IsNullOrWhiteSpace($email)) {
-    $email = 'pakoundiconstantinoweb@gmail.com'
+    $email = Read-Host 'Adresse email du super-administrateur local'
+}
+if ([string]::IsNullOrWhiteSpace($email)) {
+    throw 'L’adresse email du super-administrateur ne peut pas être vide.'
 }
 
 $dbPasswordSecure = Read-Host 'Mot de passe PostgreSQL local' -AsSecureString
