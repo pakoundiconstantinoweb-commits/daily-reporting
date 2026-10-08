@@ -26,6 +26,7 @@ class ApiSecurityErrorTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.timestamp").isNotEmpty())
                 .andExpect(jsonPath("$.message").value("Session expirée ou authentification requise."));
     }
 
@@ -36,6 +37,7 @@ class ApiSecurityErrorTest {
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.timestamp").isNotEmpty())
                 .andExpect(jsonPath("$.message").value("Vous n’êtes pas autorisé à effectuer cette action."));
     }
 }

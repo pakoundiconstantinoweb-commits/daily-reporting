@@ -30,6 +30,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.itcinnovation.backend.ApiErrorResponse;
 
 @Configuration
@@ -41,7 +42,7 @@ public class SecurityConfig {
 
     @Bean
     ObjectMapper objectMapper() {
-        return new ObjectMapper();
+        return new ObjectMapper().registerModule(new JavaTimeModule());
     }
 
     @Bean
