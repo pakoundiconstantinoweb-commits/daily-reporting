@@ -24,6 +24,9 @@ jobs:
           cache: npm
           cache-dependency-path: itc-innovation-frontend/package-lock.json
 
+      - name: Set up npm
+        run: npm install --global npm@11.6.1
+
       - name: Install dependencies
         working-directory: itc-innovation-frontend
         run: npm ci

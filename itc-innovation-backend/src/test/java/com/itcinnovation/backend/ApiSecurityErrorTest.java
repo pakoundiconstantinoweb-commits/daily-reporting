@@ -1,5 +1,6 @@
 package com.itcinnovation.backend;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -11,7 +12,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.security.test.context.support.WithMockUser;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -31,9 +31,8 @@ class ApiSecurityErrorTest {
     }
 
     @Test
-    @WithMockUser(roles = "EMPLOYEE")
     void forbiddenApiRequestsReturnJsonInsteadOfHtml() throws Exception {
-        mockMvc.perform(get("/api/reports/manager"))
+        mockMvc.perform(get("/api/reports/manager").with(user("employee").roles("EMPLOYEE")))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(403))
