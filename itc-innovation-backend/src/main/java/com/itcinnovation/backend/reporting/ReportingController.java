@@ -94,15 +94,31 @@ public class ReportingController {
         return reports.stream().map(ReportingResponse::from).toList();
     }
 
-    @PatchMapping("/manager/{id}/reaction")
-    public ReportingResponse react(
+    @PatchMapping("/manager/{id}/validation")
+    public ReportingResponse validate(
             @PathVariable Long id,
-            @Valid @RequestBody ReactionRequest request,
+            @Valid @RequestBody ValidationRequest request,
             Authentication authentication) {
         User manager = currentManager(authentication);
         Reporting reporting = reportingRepository.findByIdAndEmployee_Manager_Id(id, manager.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reporting introuvable"));
-        reporting.setReaction(request.reaction());
+        reporting.setValidated(request.validated());
+        reporting.setManagerDecision(request.validated() ? ManagerDecision.VALIDATED : ManagerDecision.PENDING);
+        reporting.setReaction(null);
+        return ReportingResponse.from(reportingRepository.save(reporting));
+    }
+
+    @PatchMapping("/manager/{id}/decision")
+    public ReportingResponse decide(
+            @PathVariable Long id,
+            @Valid @RequestBody DecisionRequest request,
+            Authentication authentication) {
+        User manager = currentManager(authentication);
+        Reporting reporting = reportingRepository.findByIdAndEmployee_Manager_Id(id, manager.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reporting introuvable"));
+        reporting.setManagerDecision(request.decision());
+        reporting.setValidated(request.decision() == ManagerDecision.VALIDATED);
+        reporting.setReaction(null);
         return ReportingResponse.from(reportingRepository.save(reporting));
     }
 

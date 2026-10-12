@@ -72,6 +72,50 @@ public class ManagerUserController {
         return UserResponse.from(userRepository.save(employee));
     }
 
+    @PatchMapping("/{id}")
+    public UserResponse updateEmployee(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateEmployeeRequest request,
+            Authentication authentication) {
+        User manager = currentManager(authentication);
+        User employee = userRepository.findByIdAndManager_IdAndRole(id, manager.getId(), UserRole.EMPLOYEE)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Employé introuvable"));
+
+        if (userRepository.existsByEmailIgnoreCaseAndIdNot(request.email(), id)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cette adresse email est déjà utilisée");
+        }
+
+        employee.setFirstName(request.firstName().trim());
+        employee.setLastName(request.lastName().trim());
+        employee.setEmail(request.email().trim());
+        employee.setPhone(normalizeOptional(request.phone()));
+        employee.setDepartment(normalizeOptional(request.department()));
+        return UserResponse.from(userRepository.save(employee));
+    }
+
+    @PatchMapping("/{id}/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void resetEmployeePassword(
+            @PathVariable Long id,
+            @Valid @RequestBody ResetEmployeePasswordRequest request,
+            Authentication authentication) {
+        User manager = currentManager(authentication);
+        User employee = userRepository.findByIdAndManager_IdAndRole(id, manager.getId(), UserRole.EMPLOYEE)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Employé introuvable"));
+
+        employee.setPassword(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(employee);
+    }
+
+    private String normalizeOptional(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
+    }
+
     private User currentManager(Authentication authentication) {
         try {
             return userRepository.findById(Long.valueOf(authentication.getName()))

@@ -42,6 +42,13 @@ public class Reporting {
     @Column(length = 20)
     private ReportReaction reaction;
 
+    @Column(name = "manager_validated")
+    private Boolean validated = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "manager_decision", length = 20)
+    private ManagerDecision managerDecision = ManagerDecision.PENDING;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "employee_id", nullable = false)
     private User employee;
@@ -65,6 +72,10 @@ public class Reporting {
     public void setStatus(ReportingStatus status) { this.status = status; }
     public ReportReaction getReaction() { return reaction; }
     public void setReaction(ReportReaction reaction) { this.reaction = reaction; }
+    public Boolean getValidated() { return validated; }
+    public void setValidated(Boolean validated) { this.validated = validated; }
+    public ManagerDecision getManagerDecision() { return managerDecision; }
+    public void setManagerDecision(ManagerDecision managerDecision) { this.managerDecision = managerDecision; }
     public User getEmployee() { return employee; }
     public void setEmployee(User employee) { this.employee = employee; }
 }

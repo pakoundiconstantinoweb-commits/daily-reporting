@@ -2,7 +2,7 @@
   @if (user(); as profile) {
     @if (profile.role === 'EMPLOYEE') {
       <aside class="employee-sidebar" aria-label="Navigation employé">
-        <div class="sidebar-brand"><span class="brand-mark">DR</span><div><strong>Daily Reporting</strong><small>REPORTING</small></div></div>
+        <div class="sidebar-brand"><img class="brand-logo" src="/daily-reporting-logo.svg" alt=""><div><strong>Daily Reporting</strong><small>REPORTING</small></div></div>
         <p class="sidebar-label">ESPACE EMPLOYÉ</p>
         <nav class="sidebar-nav" aria-label="Navigation employé"><button type="button" [class.active]="employeeSection() === 'report'" [attr.aria-current]="employeeSection() === 'report' ? 'page' : null" (click)="employeeSection.set('report')"><span>R</span>Mon reporting</button><button type="button" [class.active]="employeeSection() === 'history'" [attr.aria-current]="employeeSection() === 'history' ? 'page' : null" (click)="employeeSection.set('history')"><span>H</span>Historique</button></nav>
         <div class="employee-sidebar-account"><div class="account-avatar">{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</div><div class="account-name"><strong>{{ profile.firstName }} {{ profile.lastName }}</strong><small>Employé</small></div><button type="button" class="employee-profile-link" [class.active]="employeeSection() === 'profile'" [attr.aria-current]="employeeSection() === 'profile' ? 'page' : null" (click)="openProfile()"><span aria-hidden="true">P</span>Mon profil</button><button type="button" class="employee-logout" (click)="logout()">Se déconnecter</button></div>
@@ -18,10 +18,10 @@
       }
       <section class="workspace employee-workspace">
         @if (employeeSection() === 'report') {
-          <div class="workspace-heading"><div><p class="eyebrow">Espace employé</p><h1>Mon reporting du jour</h1></div><time>{{ today | date:'dd/MM/yyyy' }}</time></div>
+          <div class="workspace-heading"><div><p class="eyebrow">Espace employé</p><h1>Mon reporting du jour</h1></div><time>{{ formatShortDate(currentLocalDate()) }}</time></div>
           <form class="report-form employee-report-form" (ngSubmit)="saveDraft()">
-            <label for="report-title">Titre de l’activité</label><input id="report-title" type="text" name="reportTitle" required [ngModel]="reportTitle()" (ngModelChange)="reportTitle.set($event); error.set('')" placeholder="Ex. Intervention à VSF">
-            <label for="report-description">Description</label><textarea id="report-description" name="reportDescription" rows="9" required [ngModel]="reportDescription()" (ngModelChange)="reportDescription.set($event); error.set('')" placeholder="Décrivez le travail effectué aujourd’hui..."></textarea>
+            <label for="report-title">Titre de l’activité</label><textarea id="report-title" name="reportTitle" rows="1" required [ngModel]="reportTitle()" (ngModelChange)="reportTitle.set($event); error.set('')" (input)="resizeReportDescription($event)" (focus)="resizeReportDescription($event)" placeholder="Ex. Intervention à VSF"></textarea>
+            <label for="report-description">Description</label><textarea id="report-description" name="reportDescription" rows="3" required [ngModel]="reportDescription()" (ngModelChange)="reportDescription.set($event); error.set('')" (input)="resizeReportDescription($event)" (focus)="resizeReportDescription($event)" placeholder="Décrivez le travail effectué aujourd’hui..."></textarea>
             <div class="actions"><button type="submit" class="secondary-action">Enregistrer en brouillon</button><button type="button" class="primary-button" (click)="submitReport()">Valider</button></div>
             @if (notice()) { <p class="success" role="status">{{ notice() }}</p> } @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
           </form>
@@ -30,8 +30,20 @@
           <div class="report-date-filter"><label for="employee-date-search">Rechercher mon historique par date</label><div><input id="employee-date-search" type="date" [ngModel]="employeeSelectedDate()" (ngModelChange)="employeeSelectedDate.set($event)"><button type="button" (click)="searchMyReports()">Rechercher</button><button type="button" class="clear-search" (click)="employeeSelectedDate.set(''); loadEmployeeReports()">Toutes les dates</button></div></div>
           @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
           <aside class="history employee-history-list" aria-label="Historique des reportings"><p class="eyebrow">Historique</p><h2>Mes reportings enregistrés</h2>
-            @for (report of reportings(); track report.id) {<article class="report-item"><div><strong>{{ report.title }}</strong><small>{{ report.reportDate }}</small></div>@if (report.status === 'DRAFT') {<button type="button" class="edit-button" (click)="editDraft(report)">Modifier</button>} @else {<div class="report-status"><span class="status">Envoyé</span>@if (report.reaction === 'LIKE') {<span class="reaction-status like">Like</span>} @else if (report.reaction === 'DISLIKE') {<span class="reaction-status dislike">Dislike</span>} @else {<span class="reaction-status pending">En attente</span>}</div>}</article>} @empty {<p class="muted">Aucun reporting enregistré.</p>}
+            @for (report of reportings(); track report.id) {<article class="report-item" [class.readable-report]="report.status === 'SUBMITTED'" [attr.role]="report.status === 'SUBMITTED' ? 'button' : null" [attr.tabindex]="report.status === 'SUBMITTED' ? 0 : null" (click)="report.status === 'SUBMITTED' && toggleReportDetails(report)" (keydown.enter)="report.status === 'SUBMITTED' && toggleReportDetails(report)" (keydown.space)="report.status === 'SUBMITTED' && toggleReportDetails(report); $event.preventDefault()"><div><strong>{{ report.title }}</strong><small>{{ formatShortDate(report.reportDate) }}</small></div>@if (report.status === 'DRAFT') {<button type="button" class="edit-button" (click)="editDraft(report)">Modifier</button>} @else {<div class="report-status"><span class="status">Envoyé</span><span class="validation-status" [class.validated]="report.decision === 'VALIDATED'" [class.rejected]="report.decision === 'REJECTED'">{{ report.decision === 'VALIDATED' ? 'Validé par le manager' : report.decision === 'REJECTED' ? 'Refusé par le manager' : 'En attente de validation' }}</span></div>}</article>} @empty {<p class="muted">Aucun reporting enregistré.</p>}
           </aside>
+          @if (selectedReport(); as report) {
+            <div class="report-modal-backdrop" role="presentation" (click)="closeReportDetails()">
+              <section class="report-modal" role="dialog" aria-modal="true" aria-labelledby="employee-report-modal-title" tabindex="-1" (click)="$event.stopPropagation()">
+                <header class="report-modal-header">
+                  <div><p class="eyebrow">Mon reporting</p><h2 id="employee-report-modal-title">{{ report.title }}</h2><time [attr.datetime]="report.reportDate">{{ formatReportDate(report.reportDate) }}</time></div>
+                  <button type="button" class="report-modal-close" aria-label="Fermer le reporting" (click)="closeReportDetails()">×</button>
+                </header>
+                <div class="report-modal-description">{{ report.description }}</div>
+                <footer class="report-modal-footer"><span class="validation-status" [class.validated]="report.decision === 'VALIDATED'" [class.rejected]="report.decision === 'REJECTED'">{{ report.decision === 'VALIDATED' ? 'Validé par le manager' : report.decision === 'REJECTED' ? 'Refusé par le manager' : 'En attente de validation' }}</span></footer>
+              </section>
+            </div>
+          }
         } @else {
           <div class="workspace-heading profile-heading"><div><p class="eyebrow">Mon compte</p><h1>Mon profil</h1><p class="profile-heading-description">Consulte tes informations personnelles et protège ton compte.</p></div></div>
           @if (profileLoadError()) { <p class="error" role="alert">{{ profileLoadError() }}</p> }
@@ -76,18 +88,95 @@
     } @else {
       <section class="workspace manager-dashboard">
         <aside class="manager-sidebar" aria-label="Navigation manager">
-          <div class="sidebar-brand"><span class="brand-mark">DR</span><div><strong>Daily Reporting</strong><small>REPORTING</small></div></div>
+          <div class="sidebar-brand"><img class="brand-logo" src="/daily-reporting-logo.svg" alt=""><div><strong>Daily Reporting</strong><small>REPORTING</small></div></div>
           <p class="sidebar-label">ESPACE DIRECTION</p>
-          <nav class="sidebar-nav" aria-label="Navigation manager"><button type="button" [class.active]="managerSection() === 'reports'" (click)="managerSection.set('reports')"><span>R</span>Reportings</button><button type="button" [class.active]="managerSection() === 'employees'" (click)="managerSection.set('employees')"><span>E</span>Employés</button>@if (profile.role === 'SUPER_ADMIN') { <button type="button" [class.active]="managerSection() === 'invitations'" (click)="managerSection.set('invitations')"><span>I</span>Invitations</button> }</nav>
+          <nav class="sidebar-nav" aria-label="Navigation manager"><button type="button" [class.active]="managerSection() === 'reports'" (click)="openManagerReports()"><span>R</span>Reportings du jour</button><button type="button" [class.active]="managerSection() === 'history'" (click)="openManagerHistory()"><span>H</span>Historique</button><button type="button" [class.active]="managerSection() === 'employees'" (click)="managerSection.set('employees')"><span>E</span>Employés</button>@if (profile.role === 'SUPER_ADMIN') { <button type="button" [class.active]="managerSection() === 'invitations'" (click)="managerSection.set('invitations')"><span>I</span>Invitations</button> }</nav>
           <div class="sidebar-account"><div class="account-avatar">{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</div><div class="account-name"><strong>{{ profile.firstName }} {{ profile.lastName }}</strong><small>{{ profile.role === 'SUPER_ADMIN' ? 'Super-administrateur · Manager' : 'Directeur / Manager' }}</small></div><button type="button" class="sidebar-profile-link" [class.active]="managerSection() === 'profile'" [attr.aria-current]="managerSection() === 'profile' ? 'page' : null" (click)="openProfile()"><span aria-hidden="true">P</span>Mon profil</button><button type="button" class="sidebar-logout" (click)="logout()">Se déconnecter</button></div>
         </aside>
         <div class="manager-main">
-          <header class="manager-header"><div><p class="eyebrow">{{ profile.role === 'SUPER_ADMIN' ? 'Espace Super-administrateur' : 'Espace Directeur / Manager' }}</p>@if (managerSection() === 'reports') {<h1>Suivi des reportings journaliers de l'équipe</h1>} @else if (managerSection() === 'employees') {<h1>Employés</h1><p class="manager-subtitle">Création des comptes et gestion des accès</p>} @else if (managerSection() === 'invitations') {<h1>Invitations</h1><p class="manager-subtitle">Créer un accès Manager à usage unique, valable 24 heures</p>} @else {<h1>Mon profil</h1><p class="manager-subtitle">Informations du compte et sécurité</p>}</div><div class="manager-date">{{ today | date:'dd MMMM yyyy':'':'fr-FR' }}<b>{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</b></div></header>
+          <header class="manager-header"><div><p class="eyebrow">{{ profile.role === 'SUPER_ADMIN' ? 'Espace Super-administrateur' : 'Espace Directeur / Manager' }}</p>@if (managerSection() === 'reports') {<h1>Reportings du jour</h1>} @else if (managerSection() === 'history') {<h1>Historique des reportings</h1><p class="manager-subtitle">Retrouvez les activités transmises par votre équipe</p>} @else if (managerSection() === 'employees') {<h1>Employés</h1><p class="manager-subtitle">Création des comptes et gestion des accès</p>} @else if (managerSection() === 'invitations') {<h1>Invitations</h1><p class="manager-subtitle">Créer un accès Manager à usage unique, valable 24 heures</p>} @else {<h1>Mon profil</h1><p class="manager-subtitle">Informations du compte et sécurité</p>}</div><div class="manager-date"><span>{{ formatShortDate(currentLocalDate()) }}</span><b aria-label="Initiales du compte">{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</b></div></header>
           @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
-          @if (managerSection() === 'reports') {
-            <div class="stats-grid"><article><span>Reportings aujourd'hui</span><strong>{{ countTodayReports() }}</strong><small>sur {{ activeEmployeeCount() }} employés actifs</small></article><article><span>Total reçus</span><strong>{{ reportings().length }}</strong><small>historique conservé</small></article><article><span>Comptes actifs</span><strong>{{ activeEmployeeCount() }}</strong><small>sur {{ employees().length }}</small></article></div>
-            <div class="report-date-filter"><label for="manager-date-search">Rechercher les reportings par date</label><div><input id="manager-date-search" type="date" [ngModel]="selectedDate()" (ngModelChange)="selectedDate.set($event)"><button type="button" (click)="searchReports()">Rechercher</button><button type="button" class="clear-search" (click)="selectedDate.set(''); searchReports()">Toutes les dates</button></div></div>
-            <div class="dashboard-panels"><section class="reports-panel"><div class="reports-heading"><h2>Reportings</h2>@if (selectedEmployeeId() !== null) {<button type="button" class="clear-filter" (click)="clearEmployeeFilter()">Tous les employés</button>}</div><div class="manager-list">@for (report of visibleReportings(); track report.id) {<article class="manager-report" [class.selected]="selectedReport()?.id === report.id"><div class="manager-report-row"><button type="button" class="manager-report-summary" [attr.aria-expanded]="selectedReport()?.id === report.id" [attr.aria-controls]="'report-details-' + report.id" (click)="toggleReportDetails(report)"><span class="report-date">{{ report.reportDate }}</span><span class="report-content"><span class="eyebrow">{{ report.employeeFirstName }} {{ report.employeeLastName }}</span><strong>{{ report.title }}</strong><span class="report-open-hint">{{ selectedReport()?.id === report.id ? 'Masquer les détails' : 'Voir les détails' }}</span></span></button><div class="reactions" role="group" aria-label="Réactions au reporting"><button type="button" class="reaction-button like-button" [class.active]="report.reaction === 'LIKE'" [attr.aria-pressed]="report.reaction === 'LIKE'" (click)="react(report, 'LIKE')"><span class="reaction-icon like-icon" aria-hidden="true"></span><span>Like</span><strong>{{ reactionCount(report, 'LIKE') }}</strong></button><button type="button" class="reaction-button dislike-button" [class.active]="report.reaction === 'DISLIKE'" [attr.aria-pressed]="report.reaction === 'DISLIKE'" (click)="react(report, 'DISLIKE')"><span class="reaction-icon dislike-icon" aria-hidden="true"></span><span>Dislike</span><strong>{{ reactionCount(report, 'DISLIKE') }}</strong></button></div></div><div class="manager-report-details" [id]="'report-details-' + report.id" [hidden]="selectedReport()?.id !== report.id"><p class="manager-report-detail-meta">{{ report.employeeFirstName }} {{ report.employeeLastName }} · {{ formatReportDate(report.reportDate) }}</p><p>{{ report.description }}</p></div></article>} @empty {<p class="muted">Aucun reporting trouvé.</p>}</div></section><section class="team-panel"><h2>Équipe</h2>@for (employee of employees(); track employee.id) {<div class="team-row" [class.selected]="selectedEmployeeId() === employee.id" (click)="selectEmployee(employee)"><span class="report-avatar">{{ employee.firstName.charAt(0) }}</span><div><strong>{{ employee.firstName }} {{ employee.lastName }}</strong><small>{{ employee.department || 'Employé' }}</small></div><i [class.inactive]="employee.status === 'INACTIVE'"></i></div>} @empty {<p class="muted">Aucun employé pour l'instant.</p>}</section></div>
+          @if (managerSection() === 'reports' || managerSection() === 'history') {
+            @if (managerSection() === 'reports') {
+              <div class="stats-grid"><article><span>Reportings du jour</span><strong>{{ countTodayReports() }}</strong><small>sur {{ activeEmployeeCount() }} employés actifs</small></article><article><span>Total dans l’historique</span><strong>{{ managerHistory().length }}</strong><small>reportings reçus</small></article><article><span>Comptes actifs</span><strong>{{ activeEmployeeCount() }}</strong><small>sur {{ employees().length }}</small></article></div>
+              <p class="reports-date-label">Date : <strong>{{ formatShortDate(currentLocalDate()) }}</strong></p>
+            } @else {
+              <div class="report-date-filter history-filters">
+                <div class="history-filter-controls">
+                  <label class="history-filter-field" for="manager-date-search">Date<input id="manager-date-search" type="date" [ngModel]="selectedDate()" (ngModelChange)="selectedDate.set($event); historyPage.set(1)"></label>
+                  <label class="history-filter-field" for="manager-employee-filter">Employé<select id="manager-employee-filter" [ngModel]="historyEmployeeFilter()" (ngModelChange)="setHistoryEmployeeFilter($event)"><option [ngValue]="null">Tous les employés</option>@for (employee of employees(); track employee.id) {<option [ngValue]="employee.id">{{ employee.firstName }} {{ employee.lastName }}</option>}</select></label>
+                  <label class="history-filter-field" for="manager-decision-filter">Statut<select id="manager-decision-filter" [ngModel]="historyDecisionFilter()" (ngModelChange)="setHistoryDecisionFilter($event)"><option value="">Tous les statuts</option><option value="PENDING">En attente</option><option value="VALIDATED">Validé</option><option value="REJECTED">Refusé</option></select></label>
+                </div>
+                <div class="history-filter-actions"><button type="button" (click)="searchManagerHistory()">Rechercher</button><button type="button" class="clear-search" (click)="selectedDate.set(''); searchManagerHistory()">Toutes les dates</button></div>
+              </div>
+            }
+            <div class="dashboard-panels" [class.history-view]="managerSection() === 'history'">
+              <section class="reports-panel">
+                <div class="reports-heading">
+                  <h2>{{ managerSection() === 'reports' ? 'Activités du jour' : 'Activités de l’équipe' }}</h2>
+                  @if (selectedEmployeeId() !== null || historyEmployeeFilter() !== null) {<button type="button" class="clear-filter" (click)="clearEmployeeFilter()">Tous les employés</button>}
+                </div>
+                <div class="manager-list">
+                  @for (report of (managerSection() === 'history' ? visibleHistoryReportings() : visibleReportings()); track report.id) {
+                    <article class="manager-report" [class.selected]="selectedReport()?.id === report.id">
+                      <div class="manager-report-row">
+                        <time class="report-date" [attr.datetime]="report.reportDate">{{ formatReportDate(report.reportDate) }}</time>
+                        <button type="button" class="manager-report-summary" [attr.aria-label]="'Lire le reporting : ' + report.title" (click)="toggleReportDetails(report)">
+                          <span class="report-content">
+                            <span class="eyebrow">{{ report.employeeFirstName }} {{ report.employeeLastName }}</span>
+                            <strong>{{ report.title }}</strong>
+                            <span class="report-open-hint">Cliquer pour lire</span>
+                          </span>
+                        </button>
+                        <div class="report-validation">
+                          <button type="button" class="decision-button validate-decision" [class.selected]="report.decision === 'VALIDATED'" [attr.aria-pressed]="report.decision === 'VALIDATED'" (click)="setReportDecision(report, 'VALIDATED')">Valider</button>
+                          <button type="button" class="decision-button reject-decision" [class.selected]="report.decision === 'REJECTED'" [attr.aria-pressed]="report.decision === 'REJECTED'" (click)="setReportDecision(report, 'REJECTED')">Refuser</button>
+                        </div>
+                      </div>
+                    </article>
+                  } @empty {
+                    <p class="muted">{{ managerSection() === 'reports' ? 'Aucun reporting envoyé aujourd’hui.' : 'Aucun reporting trouvé pour cette période.' }}</p>
+                  }
+                </div>
+                @if (managerSection() === 'history' && historyPageCount() > 1) {
+                  <nav class="reports-heading" aria-label="Pagination de l’historique">
+                    <span>Reportings {{ historyRangeStart() }}–{{ historyRangeEnd() }} sur {{ visibleReportings().length }}</span>
+                    <div>
+                      <button type="button" class="clear-filter" [disabled]="historyPage() === 1" (click)="goToHistoryPage(historyPage() - 1)">Précédent</button>
+                      <span>Page {{ historyPage() }} sur {{ historyPageCount() }}</span>
+                      <button type="button" class="clear-filter" [disabled]="historyPage() === historyPageCount()" (click)="goToHistoryPage(historyPage() + 1)">Suivant</button>
+                    </div>
+                  </nav>
+                }
+              </section>
+              @if (managerSection() === 'reports') {
+                <section class="team-panel">
+                  <h2>Équipe</h2>
+                  @for (employee of employees(); track employee.id) {
+                    <div class="team-row" [class.selected]="selectedEmployeeId() === employee.id" (click)="selectEmployee(employee)">
+                      <span class="report-avatar">{{ employee.firstName.charAt(0) }}</span>
+                      <div><strong>{{ employee.firstName }} {{ employee.lastName }}</strong><small>{{ employee.department || 'Employé' }}</small></div>
+                      <i [class.inactive]="employee.status === 'INACTIVE'"></i>
+                    </div>
+                  } @empty {<p class="muted">Aucun employé pour l’instant.</p>}
+                </section>
+              }
+            </div>
+            @if (selectedReport(); as report) {
+              <div class="report-modal-backdrop" role="presentation" (click)="closeReportDetails()">
+                <section class="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-modal-title" tabindex="-1" (click)="$event.stopPropagation()">
+                  <header class="report-modal-header">
+                    <div><p class="eyebrow">{{ report.employeeFirstName }} {{ report.employeeLastName }}</p><h2 id="report-modal-title">{{ report.title }}</h2><time [attr.datetime]="report.reportDate">{{ formatReportDate(report.reportDate) }}</time></div>
+                    <button type="button" class="report-modal-close" aria-label="Fermer le reporting" (click)="closeReportDetails()">×</button>
+                  </header>
+                  <div class="report-modal-description">{{ report.description }}</div>
+                  <footer class="report-modal-footer">
+                    <span class="validation-status" [class.validated]="report.decision === 'VALIDATED'" [class.rejected]="report.decision === 'REJECTED'">{{ report.decision === 'VALIDATED' ? 'Validé' : report.decision === 'REJECTED' ? 'Refusé' : 'En attente de validation' }}</span>
+                    <div class="report-decision-actions"><button type="button" class="decision-button validate-decision" [class.selected]="report.decision === 'VALIDATED'" [attr.aria-pressed]="report.decision === 'VALIDATED'" (click)="setReportDecision(report, 'VALIDATED')">Valider</button><button type="button" class="decision-button reject-decision" [class.selected]="report.decision === 'REJECTED'" [attr.aria-pressed]="report.decision === 'REJECTED'" (click)="setReportDecision(report, 'REJECTED')">Refuser</button></div>
+                  </footer>
+                </section>
+              </div>
+            }
           } @else if (managerSection() === 'employees') {
             <section class="employee-admin"><div><p class="eyebrow">Gestion des comptes</p><h2>Employés</h2></div>
               @if (notice()) { <p class="success" role="status">{{ notice() }}</p> }
@@ -100,7 +189,49 @@
                 <div class="field-group"><label for="employee-department">Service</label><input id="employee-department" type="text" name="department" autocomplete="off" placeholder="Ex. Informatique" [ngModel]="employeeDepartment()" (ngModelChange)="employeeDepartment.set($event)"></div>
                 <button type="submit" class="primary-button compact">Créer le compte</button>
               </form>
-              <div class="employee-list">@for (employee of employees(); track employee.id) {<div class="employee-row"><div><strong>{{ employee.firstName }} {{ employee.lastName }}</strong><small>{{ employee.email }}{{ employee.department ? ' · ' + employee.department : '' }}</small></div><button type="button" class="status-button" [class.inactive]="employee.status === 'INACTIVE'" (click)="toggleEmployee(employee)">{{ employee.status === 'ACTIVE' ? 'Actif · Désactiver' : 'Inactif · Réactiver' }}</button></div>} @empty {<p class="muted">Aucun employé. Créez le premier compte.</p>}</div>
+              <div class="employee-list">
+                <label class="employee-status-filter" for="employee-status-filter">Afficher les employés
+                  <select id="employee-status-filter" [ngModel]="employeeStatusFilter()" (ngModelChange)="employeeStatusFilter.set($event)">
+                    <option value="">Tous</option><option value="ACTIVE">Actifs</option><option value="INACTIVE">Inactifs</option>
+                  </select>
+                </label>
+                @for (employee of visibleEmployees(); track employee.id) {
+                  <div class="employee-row">
+                    <button type="button" class="employee-open-button" (click)="startEditingEmployee(employee)" [attr.aria-label]="'Ouvrir le compte de ' + employee.firstName + ' ' + employee.lastName">
+                      <strong>{{ employee.firstName }} {{ employee.lastName }}</strong>
+                      <small>{{ employee.email }}{{ employee.department ? ' · ' + employee.department : '' }}</small>
+                    </button>
+                    <div class="employee-row-actions"><button type="button" class="status-button" [class.inactive]="employee.status === 'INACTIVE'" (click)="toggleEmployee(employee)">{{ employee.status === 'ACTIVE' ? 'Actif · Désactiver' : 'Inactif · Réactiver' }}</button></div>
+                  </div>
+                } @empty {<p class="muted">Aucun employé pour ce filtre.</p>}
+              </div>
+              @if (editingEmployee(); as employee) {
+                <div class="report-modal-backdrop" role="presentation" (click)="cancelEditingEmployee()">
+                  <section class="report-modal employee-edit-modal" role="dialog" aria-modal="true" aria-labelledby="employee-edit-title" tabindex="-1" (click)="$event.stopPropagation()">
+                    <header class="report-modal-header">
+                      <div><p class="eyebrow">Gestion du compte</p><h2 id="employee-edit-title">{{ employee.firstName }} {{ employee.lastName }}</h2><span class="validation-status" [class.rejected]="employee.status === 'INACTIVE'">{{ employee.status === 'ACTIVE' ? 'Compte actif' : 'Compte inactif' }}</span></div>
+                      <button type="button" class="report-modal-close" aria-label="Fermer la fenêtre" (click)="cancelEditingEmployee()">×</button>
+                    </header>
+                    @if (employeeDialogError()) { <p class="error" role="alert">{{ employeeDialogError() }}</p> }
+                    @if (employeeDialogNotice()) { <p class="success" role="status">{{ employeeDialogNotice() }}</p> }
+                    <form class="employee-edit-form" (ngSubmit)="updateEmployee()">
+                      <div class="field-group"><label for="edit-employee-first">Prénom</label><input id="edit-employee-first" name="editFirstName" required [ngModel]="editEmployeeFirstName()" (ngModelChange)="editEmployeeFirstName.set($event)"></div>
+                      <div class="field-group"><label for="edit-employee-last">Nom</label><input id="edit-employee-last" name="editLastName" required [ngModel]="editEmployeeLastName()" (ngModelChange)="editEmployeeLastName.set($event)"></div>
+                      <div class="field-group"><label for="edit-employee-email">E-mail</label><input id="edit-employee-email" type="email" name="editEmail" required [ngModel]="editEmployeeEmail()" (ngModelChange)="editEmployeeEmail.set($event)"></div>
+                      <div class="field-group"><label for="edit-employee-phone">Téléphone</label><input id="edit-employee-phone" type="tel" name="editPhone" [ngModel]="editEmployeePhone()" (ngModelChange)="editEmployeePhone.set($event)"></div>
+                      <div class="field-group"><label for="edit-employee-department">Service</label><input id="edit-employee-department" name="editDepartment" [ngModel]="editEmployeeDepartment()" (ngModelChange)="editEmployeeDepartment.set($event)"></div>
+                      <div class="employee-edit-actions"><button type="submit" class="status-button">Enregistrer les informations</button></div>
+                    </form>
+                    <form class="employee-password-reset" (ngSubmit)="resetEmployeePassword()">
+                      <h3>Réinitialiser le mot de passe</h3>
+                      <p>Définissez un nouveau mot de passe sans demander l’ancien.</p>
+                      <label for="employee-reset-password">Nouveau mot de passe</label>
+                      <input id="employee-reset-password" type="password" name="employeeResetPassword" required minlength="8" maxlength="120" autocomplete="new-password" [ngModel]="employeePasswordReset()" (ngModelChange)="employeePasswordReset.set($event)">
+                      <button type="submit" class="status-button">Réinitialiser</button>
+                    </form>
+                  </section>
+                </div>
+              }
             </section>
           } @else if (managerSection() === 'invitations' && profile.role === 'SUPER_ADMIN') {
             <section class="profile-card manager-invitation-admin" aria-labelledby="manager-invitations-title">

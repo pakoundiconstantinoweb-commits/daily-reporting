@@ -1,8 +1,10 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, HostListener, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { interval } from 'rxjs';
 
 import { AuthResponse } from './auth.types';
 import { apiErrorMessage } from './api-error';
@@ -17,10 +19,61 @@ interface Reporting {
   title: string;
   description: string;
   status: 'DRAFT' | 'SUBMITTED';
-  reaction: 'LIKE' | 'DISLIKE' | null;
+  validated: boolean;
+  decision: 'PENDING' | 'VALIDATED' | 'REJECTED';
   employeeId: number;
   employeeFirstName: string;
   employeeLastName: string;
+}
+
+export function sortReportings<T extends { id: number; reportDate: string }>(reports: readonly T[]): T[] {
+  return [...reports].sort((first, second) =>
+    second.reportDate.localeCompare(first.reportDate) || second.id - first.id);
+}
+
+export function reportingsForDate<T extends { id: number; reportDate: string }>(
+  reports: readonly T[],
+  date: string,
+): T[] {
+  return sortReportings(reports.filter(report => report.reportDate === date));
+}
+
+export function reportingsBeforeDate<T extends { id: number; reportDate: string }>(
+  reports: readonly T[],
+  date: string,
+): T[] {
+  return sortReportings(reports.filter(report => report.reportDate < date));
+}
+
+export function filterManagerReportings<T extends {
+  employeeId: number;
+  decision: 'PENDING' | 'VALIDATED' | 'REJECTED';
+}>(
+  reports: readonly T[],
+  employeeId: number | null,
+  decision: '' | T['decision'],
+): T[] {
+  return reports.filter(report =>
+    (employeeId === null || report.employeeId === employeeId) &&
+    (decision === '' || report.decision === decision));
+}
+
+export function paginateReportings<T>(reports: readonly T[], page: number, pageSize: number): T[] {
+  const start = Math.max(0, page - 1) * pageSize;
+  return reports.slice(start, start + pageSize);
+}
+
+export function formatFrenchReportDate(date: string): string {
+  const parsed = new Date(`${date}T00:00:00`);
+  const weekday = new Intl.DateTimeFormat('fr-FR', { weekday: 'short' }).format(parsed).replace(/\.$/, '');
+  const day = String(parsed.getDate()).padStart(2, '0');
+  const month = String(parsed.getMonth() + 1).padStart(2, '0');
+  return `${weekday} ${day}/${month}/${parsed.getFullYear()}`;
+}
+
+export function resizeTextareaToContent(textarea: HTMLTextAreaElement): void {
+  textarea.style.height = 'auto';
+  textarea.style.height = `${textarea.scrollHeight}px`;
 }
 
 interface Employee {
@@ -31,6 +84,13 @@ interface Employee {
   phone: string | null;
   department: string | null;
   status: 'ACTIVE' | 'INACTIVE';
+}
+
+export function filterEmployeesByStatus<T extends { status: 'ACTIVE' | 'INACTIVE' }>(
+  employees: readonly T[],
+  status: '' | T['status'],
+): T[] {
+  return status === '' ? [...employees] : employees.filter(employee => employee.status === status);
 }
 
 interface ProfileInformation {
@@ -57,20 +117,37 @@ interface CreatedManagerInvitation {
   styleUrl: './app.css'
 })
 export class App {
+  private readonly historyPageSize = 20;
   private readonly http = inject(HttpClient);
+  private readonly destroyRef = inject(DestroyRef);
+  private currentLoadedDay = this.localDateString();
   protected readonly error = signal('');
   protected readonly user = signal<AuthResponse | null>(null);
   protected readonly reportings = signal<Reporting[]>([]);
+  protected readonly managerDailyReports = signal<Reporting[]>([]);
+  protected readonly managerHistory = signal<Reporting[]>([]);
   protected readonly selectedReport = signal<Reporting | null>(null);
   protected readonly reportTitle = signal('');
   protected readonly reportDescription = signal('');
   protected readonly selectedDate = signal('');
+  protected readonly historyPage = signal(1);
+  protected readonly historyEmployeeFilter = signal<number | null>(null);
+  protected readonly historyDecisionFilter = signal<'' | Reporting['decision']>('');
   protected readonly employeeSelectedDate = signal('');
   protected readonly selectedEmployeeId = signal<number | null>(null);
   protected readonly notice = signal('');
   protected readonly editingReportId = signal<number | null>(null);
-  protected readonly today = new Date();
   protected readonly employees = signal<Employee[]>([]);
+  protected readonly employeeStatusFilter = signal<'' | Employee['status']>('');
+  protected readonly editingEmployee = signal<Employee | null>(null);
+  protected readonly editEmployeeFirstName = signal('');
+  protected readonly editEmployeeLastName = signal('');
+  protected readonly editEmployeeEmail = signal('');
+  protected readonly editEmployeePhone = signal('');
+  protected readonly editEmployeeDepartment = signal('');
+  protected readonly employeePasswordReset = signal('');
+  protected readonly employeeDialogError = signal('');
+  protected readonly employeeDialogNotice = signal('');
   protected readonly employeeFirstName = signal('');
   protected readonly employeeLastName = signal('');
   protected readonly employeeEmail = signal('');
@@ -80,7 +157,7 @@ export class App {
   protected readonly employeePhone = signal('');
   protected readonly employeePhoneCountryCode = signal('+228');
   protected readonly countryCodes = COUNTRY_CODES;
-  protected readonly managerSection = signal<'reports' | 'employees' | 'invitations' | 'profile'>('reports');
+  protected readonly managerSection = signal<'reports' | 'history' | 'employees' | 'invitations' | 'profile'>('reports');
   protected readonly employeeSection = signal<'report' | 'history' | 'profile'>('report');
   protected readonly profileInformation = signal<ProfileInformation | null>(null);
   protected readonly profileLoadError = signal('');
@@ -108,6 +185,19 @@ export class App {
   protected readonly invitationNotice = signal('');
 
   constructor() {
+    interval(30_000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      const today = this.localDateString();
+      if (today === this.currentLoadedDay) return;
+
+      this.currentLoadedDay = today;
+      if (this.user()?.role === 'EMPLOYEE') return;
+
+      this.managerDailyReports.set([]);
+      this.managerHistory.set([]);
+      this.searchReports();
+      this.searchManagerHistory();
+    });
+
     const storedProfile = localStorage.getItem('itc_profile');
     if (!storedProfile) return;
     try {
@@ -129,6 +219,18 @@ export class App {
     localStorage.removeItem('itc_token');
     localStorage.removeItem('itc_profile');
     this.user.set(null);
+  }
+
+  protected openManagerReports(): void {
+    this.managerSection.set('reports');
+    this.selectedReport.set(null);
+    this.searchReports();
+  }
+
+  protected openManagerHistory(): void {
+    this.managerSection.set('history');
+    this.selectedReport.set(null);
+    this.searchManagerHistory();
   }
 
   protected openProfile(): void {
@@ -378,10 +480,30 @@ export class App {
 
   protected searchReports(): void {
     this.error.set('');
-    const query = this.selectedDate() ? `?date=${this.selectedDate()}` : '';
+    const requestedDate = this.localDateString();
+    const query = `?date=${requestedDate}`;
     this.http.get<Reporting[]>(`/api/reports/manager${query}`).subscribe({
-      next: (reports) => this.reportings.set(reports),
+      next: reports => {
+        if (requestedDate !== this.localDateString()) {
+          this.searchReports();
+          return;
+        }
+        this.managerDailyReports.set(reportingsForDate(reports, requestedDate));
+      },
       error: (response: HttpErrorResponse) => this.error.set(apiErrorMessage(response, 'Les reportings n’ont pas pu être chargés.')),
+    });
+  }
+
+  protected searchManagerHistory(): void {
+    this.error.set('');
+    this.historyPage.set(1);
+    const requestedDate = this.selectedDate();
+    const query = requestedDate ? `?date=${requestedDate}` : '';
+    this.http.get<Reporting[]>(`/api/reports/manager${query}`).subscribe({
+      next: reports => this.managerHistory.set(requestedDate
+        ? reportingsForDate(reports, requestedDate)
+        : reportingsBeforeDate(reports, this.localDateString())),
+      error: (response: HttpErrorResponse) => this.error.set(apiErrorMessage(response, 'L’historique des reportings n’a pas pu être chargé.')),
     });
   }
 
@@ -389,28 +511,36 @@ export class App {
     this.error.set('');
     const query = this.employeeSelectedDate() ? `?date=${this.employeeSelectedDate()}` : '';
     this.http.get<Reporting[]>(`/api/reports/mine${query}`).subscribe({
-      next: (reports) => this.reportings.set(reports),
+      next: (reports) => this.reportings.set(sortReportings(reports)),
       error: (response: HttpErrorResponse) => this.error.set(apiErrorMessage(response, 'Votre historique n’a pas pu être chargé.')),
     });
   }
 
-  protected react(report: Reporting, reaction: 'LIKE' | 'DISLIKE'): void {
+  protected setReportDecision(report: Reporting, decision: 'VALIDATED' | 'REJECTED'): void {
     this.error.set('');
-    this.http.patch<Reporting>(`/api/reports/manager/${report.id}/reaction`, { reaction }).subscribe({
+    this.http.patch<Reporting>(`/api/reports/manager/${report.id}/decision`, { decision }).subscribe({
       next: (updated) => {
         this.reportings.update(items => items.map(item => item.id === updated.id ? updated : item));
+        this.managerDailyReports.update(items => items.map(item => item.id === updated.id ? updated : item));
+        this.managerHistory.update(items => items.map(item => item.id === updated.id ? updated : item));
         if (this.selectedReport()?.id === updated.id) this.selectedReport.set(updated);
       },
       error: (response: HttpErrorResponse) => this.error.set(apiErrorMessage(response, 'La réaction n’a pas pu être enregistrée.')),
     });
   }
 
-  protected reactionCount(report: Reporting, reaction: 'LIKE' | 'DISLIKE'): number {
-    return report.reaction === reaction ? 1 : 0;
+  protected toggleReportDetails(report: Reporting): void {
+    this.selectedReport.set(report);
   }
 
-  protected toggleReportDetails(report: Reporting): void {
-    this.selectedReport.update(selected => selected?.id === report.id ? null : report);
+  protected closeReportDetails(): void {
+    this.selectedReport.set(null);
+  }
+
+  @HostListener('document:keydown.escape')
+  protected closeReportDetailsOnEscape(): void {
+    if (this.selectedReport()) this.closeReportDetails();
+    if (this.editingEmployee()) this.cancelEditingEmployee();
   }
 
   protected selectEmployee(employee: Employee): void {
@@ -420,14 +550,53 @@ export class App {
 
   protected clearEmployeeFilter(): void {
     this.selectedEmployeeId.set(null);
+    this.historyEmployeeFilter.set(null);
+    this.selectedReport.set(null);
+    this.historyPage.set(1);
+  }
+
+  protected setHistoryEmployeeFilter(employeeId: number | null): void {
+    this.historyEmployeeFilter.set(employeeId);
+    this.historyPage.set(1);
+    this.selectedReport.set(null);
+  }
+
+  protected setHistoryDecisionFilter(decision: '' | Reporting['decision']): void {
+    this.historyDecisionFilter.set(decision);
+    this.historyPage.set(1);
     this.selectedReport.set(null);
   }
 
   protected visibleReportings(): Reporting[] {
-    const employeeId = this.selectedEmployeeId();
-    return employeeId === null
-      ? this.reportings()
-      : this.reportings().filter(report => report.employeeId === employeeId);
+    const isHistory = this.managerSection() === 'history';
+    const reports = isHistory ? this.managerHistory() : this.managerDailyReports();
+    const employeeId = isHistory ? this.historyEmployeeFilter() : this.selectedEmployeeId();
+    const decision = isHistory ? this.historyDecisionFilter() : '';
+    const visibleReports = filterManagerReportings(reports, employeeId, decision);
+    return sortReportings(visibleReports);
+  }
+
+  protected visibleHistoryReportings(): Reporting[] {
+    return paginateReportings(this.visibleReportings(), this.historyPage(), this.historyPageSize);
+  }
+
+  protected historyPageCount(): number {
+    return Math.max(1, Math.ceil(this.visibleReportings().length / this.historyPageSize));
+  }
+
+  protected historyRangeStart(): number {
+    return this.visibleReportings().length === 0
+      ? 0
+      : (this.historyPage() - 1) * this.historyPageSize + 1;
+  }
+
+  protected historyRangeEnd(): number {
+    return Math.min(this.historyPage() * this.historyPageSize, this.visibleReportings().length);
+  }
+
+  protected goToHistoryPage(page: number): void {
+    this.historyPage.set(Math.min(Math.max(page, 1), this.historyPageCount()));
+    this.selectedReport.set(null);
   }
 
   protected createEmployee(): void {
@@ -456,23 +625,109 @@ export class App {
     });
   }
 
+  protected visibleEmployees(): Employee[] {
+    return filterEmployeesByStatus(this.employees(), this.employeeStatusFilter());
+  }
+
+  protected startEditingEmployee(employee: Employee): void {
+    this.editingEmployee.set(employee);
+    this.editEmployeeFirstName.set(employee.firstName);
+    this.editEmployeeLastName.set(employee.lastName);
+    this.editEmployeeEmail.set(employee.email);
+    this.editEmployeePhone.set(employee.phone ?? '');
+    this.editEmployeeDepartment.set(employee.department ?? '');
+    this.employeePasswordReset.set('');
+    this.employeeDialogError.set('');
+    this.employeeDialogNotice.set('');
+    this.error.set('');
+    this.notice.set('');
+  }
+
+  protected cancelEditingEmployee(): void {
+    this.editingEmployee.set(null);
+    this.employeePasswordReset.set('');
+    this.employeeDialogError.set('');
+    this.employeeDialogNotice.set('');
+  }
+
+  protected updateEmployee(): void {
+    const employee = this.editingEmployee();
+    if (!employee) return;
+
+    this.employeeDialogError.set('');
+    this.employeeDialogNotice.set('');
+    this.http.patch<Employee>(`/api/manager/employees/${employee.id}`, {
+      firstName: this.editEmployeeFirstName(),
+      lastName: this.editEmployeeLastName(),
+      email: this.editEmployeeEmail(),
+      phone: this.editEmployeePhone(),
+      department: this.editEmployeeDepartment(),
+    }).subscribe({
+      next: updated => {
+        this.employees.update(items => items.map(item => item.id === updated.id ? updated : item));
+        this.editingEmployee.set(updated);
+        this.employeeDialogNotice.set('Les informations de l’employé ont été mises à jour.');
+      },
+      error: (response: HttpErrorResponse) => this.employeeDialogError.set(apiErrorMessage(response, 'Le compte employé n’a pas pu être modifié.')),
+    });
+  }
+
+  protected resetEmployeePassword(): void {
+    const employee = this.editingEmployee();
+    if (!employee) return;
+
+    this.employeeDialogError.set('');
+    this.employeeDialogNotice.set('');
+    this.http.patch<void>(`/api/manager/employees/${employee.id}/password`, {
+      newPassword: this.employeePasswordReset(),
+    }).subscribe({
+      next: () => {
+        this.employeePasswordReset.set('');
+        this.employeeDialogNotice.set('Le mot de passe de l’employé a été réinitialisé.');
+      },
+      error: (response: HttpErrorResponse) => this.employeeDialogError.set(apiErrorMessage(response, 'Le mot de passe n’a pas pu être réinitialisé.')),
+    });
+  }
+
   protected countTodayReports(): number {
-    const today = this.today.toISOString().slice(0, 10);
-    return this.reportings().filter(report => report.reportDate === today).length;
+    return this.managerDailyReports().length;
   }
 
   protected activeEmployeeCount(): number {
     return this.employees().filter(employee => employee.status === 'ACTIVE').length;
   }
 
+  protected resizeReportDescription(event: Event): void {
+    if (event.target instanceof HTMLTextAreaElement) {
+      resizeTextareaToContent(event.target);
+    }
+  }
+
   protected formatReportDate(date: string): string {
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: '2-digit', month: 'long', year: 'numeric'
-    }).format(new Date(`${date}T00:00:00`));
+    return formatFrenchReportDate(date);
+  }
+
+  protected formatShortDate(date: string): string {
+    return formatFrenchReportDate(date);
+  }
+
+  protected currentLocalDate(): string {
+    return this.localDateString();
+  }
+
+  private localDateString(date = new Date()): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private loadWorkspace(profile: AuthResponse): void {
-    if (profile.role !== 'EMPLOYEE') { this.searchReports(); this.loadEmployees(); }
+    if (profile.role !== 'EMPLOYEE') {
+      this.searchReports();
+      this.searchManagerHistory();
+      this.loadEmployees();
+    }
     else this.loadEmployeeReports();
   }
 
@@ -487,7 +742,7 @@ export class App {
   protected loadEmployeeReports(): void {
     this.error.set('');
     this.http.get<Reporting[]>('/api/reports/mine').subscribe({
-      next: (reports) => this.reportings.set(reports),
+      next: (reports) => this.reportings.set(sortReportings(reports)),
       error: (response: HttpErrorResponse) => this.error.set(apiErrorMessage(response, 'Votre historique n’a pas pu être chargé.')),
     });
   }
