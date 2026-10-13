@@ -3,6 +3,8 @@
 Thumbs.db
 .vscode/
 .idea/
+.kilo/
+
 
 # Node / Angular
 node_modules/
