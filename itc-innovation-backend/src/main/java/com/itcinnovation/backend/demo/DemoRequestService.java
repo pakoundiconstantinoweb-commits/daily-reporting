@@ -70,7 +70,7 @@ public class DemoRequestService {
         manager = userRepository.save(manager);
         request.setDemoManagerId(manager.getId());
         demoRequestRepository.save(request);
-        return new DemoCredentialsResponse(email, password);
+        return new DemoCredentialsResponse(email, password, expiresAt);
     }
 
     @Transactional(readOnly = true)

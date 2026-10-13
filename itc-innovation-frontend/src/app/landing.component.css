@@ -56,6 +56,9 @@
 .demo-form .consent-label { display: grid; grid-template-columns: 1.1rem minmax(0,1fr); align-items: start; gap: .6rem; margin: .6rem 0; color: var(--landing-muted); font-size: .75rem; font-weight: 500; line-height: 1.45; }
 .consent-label input { width: 1rem; height: 1rem; margin: .05rem 0 0; accent-color: #365c42; }
 .demo-form button { margin-top: .3rem; }
+.demo-form .demo-resume-button { border: 1px solid #bfd3c0; color: #28513b; background: #edf5e9; }
+.demo-form .demo-resume-button:hover { background: #e1eedb; }
+.demo-resume-hint { margin: .15rem 0; color: #365c42; font-size: .8rem; line-height: 1.4; }
 .demo-form button:disabled { opacity: .65; cursor: wait; }
 .demo-form > small { color: var(--landing-muted); font-size: .72rem; line-height: 1.4; }
 .landing-error { margin: .2rem 0; color: #9d3d35; font-size: .85rem; }

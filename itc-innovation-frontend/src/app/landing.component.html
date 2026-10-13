@@ -56,6 +56,10 @@
       <input id="demo-name" name="fullName" required maxlength="160" autocomplete="name" placeholder="Ex. Aïcha Mensah" [ngModel]="request().fullName" (ngModelChange)="update('fullName', $event)">
       <label for="demo-email">E-mail professionnel</label>
       <input id="demo-email" name="email" type="email" required maxlength="160" autocomplete="email" placeholder="nom@entreprise.com" [ngModel]="request().email" (ngModelChange)="update('email', $event)">
+      @if (canResumeDemo()) {
+        <p class="demo-resume-hint">Une démo active est enregistrée dans ce navigateur. Vos identifiants de démo restent sauvegardés jusqu’à son expiration pour vous permettre de vous reconnecter.</p>
+        <button type="button" class="demo-resume-button" (click)="resumeDemo()">Reprendre ma démo</button>
+      }
       <label for="demo-phone">Téléphone / WhatsApp</label>
       <input id="demo-phone" name="phone" type="tel" required minlength="7" maxlength="30" autocomplete="tel" placeholder="+228 90 00 00 00" [ngModel]="request().phone" (ngModelChange)="update('phone', $event)">
       <label class="consent-label"><input type="checkbox" name="consentGiven" required [ngModel]="request().consentGiven" (ngModelChange)="update('consentGiven', $event)"><span>J’accepte que mes coordonnées soient conservées par le super-admin pour le suivi de ma demande commerciale.</span></label>

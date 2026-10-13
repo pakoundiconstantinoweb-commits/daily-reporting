@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -50,6 +51,7 @@ class DemoRequestServiceTest {
 
         assertEquals("director@example.com", response.email());
         assertFalse(response.password().isBlank());
+        assertTrue(response.demoExpiresAt().isAfter(Instant.now()));
         ArgumentCaptor<User> users = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(users.capture());
         User manager = users.getValue();

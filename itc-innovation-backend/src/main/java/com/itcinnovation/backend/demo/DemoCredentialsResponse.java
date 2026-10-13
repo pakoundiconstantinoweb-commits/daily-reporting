@@ -1,4 +1,6 @@
 package com.itcinnovation.backend.demo;
 
-public record DemoCredentialsResponse(String email, String password) {
+import java.time.Instant;
+
+public record DemoCredentialsResponse(String email, String password, Instant demoExpiresAt) {
 }
