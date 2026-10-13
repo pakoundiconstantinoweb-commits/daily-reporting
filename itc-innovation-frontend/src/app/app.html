@@ -90,11 +90,17 @@
         <aside class="manager-sidebar" aria-label="Navigation manager">
           <div class="sidebar-brand"><img class="brand-logo" src="/daily-reporting-logo.svg" alt=""><div><strong>Daily Reporting</strong><small>REPORTING</small></div></div>
           <p class="sidebar-label">ESPACE DIRECTION</p>
-          <nav class="sidebar-nav" aria-label="Navigation manager"><button type="button" [class.active]="managerSection() === 'reports'" (click)="openManagerReports()"><span>R</span>Reportings du jour</button><button type="button" [class.active]="managerSection() === 'history'" (click)="openManagerHistory()"><span>H</span>Historique</button><button type="button" [class.active]="managerSection() === 'employees'" (click)="managerSection.set('employees')"><span>E</span>Employés</button>@if (profile.role === 'SUPER_ADMIN') { <button type="button" [class.active]="managerSection() === 'invitations'" (click)="managerSection.set('invitations')"><span>I</span>Invitations</button> }</nav>
+          <nav class="sidebar-nav" aria-label="Navigation manager"><button type="button" [class.active]="managerSection() === 'reports'" (click)="openManagerReports()"><span>R</span>Reportings du jour</button><button type="button" [class.active]="managerSection() === 'history'" (click)="openManagerHistory()"><span>H</span>Historique</button><button type="button" [class.active]="managerSection() === 'employees'" (click)="managerSection.set('employees')"><span>E</span>Employés</button>@if (profile.role === 'SUPER_ADMIN') { <button type="button" [class.active]="managerSection() === 'invitations'" (click)="managerSection.set('invitations')"><span>I</span>Invitations</button><button type="button" [class.active]="managerSection() === 'demo-requests'" (click)="openDemoRequests()"><span>D</span>Demandes de démo</button> }</nav>
           <div class="sidebar-account"><div class="account-avatar">{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</div><div class="account-name"><strong>{{ profile.firstName }} {{ profile.lastName }}</strong><small>{{ profile.role === 'SUPER_ADMIN' ? 'Super-administrateur · Manager' : 'Directeur / Manager' }}</small></div><button type="button" class="sidebar-profile-link" [class.active]="managerSection() === 'profile'" [attr.aria-current]="managerSection() === 'profile' ? 'page' : null" (click)="openProfile()"><span aria-hidden="true">P</span>Mon profil</button><button type="button" class="sidebar-logout" (click)="logout()">Se déconnecter</button></div>
         </aside>
         <div class="manager-main">
-          <header class="manager-header"><div><p class="eyebrow">{{ profile.role === 'SUPER_ADMIN' ? 'Espace Super-administrateur' : 'Espace Directeur / Manager' }}</p>@if (managerSection() === 'reports') {<h1>Reportings du jour</h1>} @else if (managerSection() === 'history') {<h1>Historique des reportings</h1><p class="manager-subtitle">Retrouvez les activités transmises par votre équipe</p>} @else if (managerSection() === 'employees') {<h1>Employés</h1><p class="manager-subtitle">Création des comptes et gestion des accès</p>} @else if (managerSection() === 'invitations') {<h1>Invitations</h1><p class="manager-subtitle">Créer un accès Manager à usage unique, valable 24 heures</p>} @else {<h1>Mon profil</h1><p class="manager-subtitle">Informations du compte et sécurité</p>}</div><div class="manager-date"><span>{{ formatShortDate(currentLocalDate()) }}</span><b aria-label="Initiales du compte">{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</b></div></header>
+          <header class="manager-header"><div><p class="eyebrow">{{ profile.role === 'SUPER_ADMIN' ? 'Espace Super-administrateur' : 'Espace Directeur / Manager' }}</p>@if (managerSection() === 'reports') {<h1>Reportings du jour</h1>} @else if (managerSection() === 'history') {<h1>Historique des reportings</h1><p class="manager-subtitle">Retrouvez les activités transmises par votre équipe</p>} @else if (managerSection() === 'employees') {<h1>Employés</h1><p class="manager-subtitle">Création des comptes et gestion des accès</p>} @else if (managerSection() === 'invitations') {<h1>Invitations</h1><p class="manager-subtitle">Créer un accès Manager à usage unique, valable 24 heures</p>} @else if (managerSection() === 'demo-requests') {<h1>Demandes de démo</h1><p class="manager-subtitle">Coordonnées des directeurs ayant essayé l’application</p>} @else {<h1>Mon profil</h1><p class="manager-subtitle">Informations du compte et sécurité</p>}</div><div class="manager-date"><span>{{ formatShortDate(currentLocalDate()) }}</span><b aria-label="Initiales du compte">{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</b></div></header>
+          @if (profile.demoExpiresAt) {
+            <aside class="demo-expiry-banner" [class.demo-expired]="demoExpired()">
+              <span>{{ demoExpired() ? 'Votre période de démonstration est terminée.' : 'Espace de démonstration · accès jusqu’au ' + (profile.demoExpiresAt | date:'dd/MM/yyyy à HH:mm':'':'fr-FR') }}</span>
+              <a href="https://wa.me/22870383470?text=Bonjour%2C%20ma%20d%C3%A9mo%20Daily%20Reporting%20est%20termin%C3%A9e.%20Je%20souhaite%20continuer." target="_blank" rel="noopener noreferrer">Contacter le super-admin sur WhatsApp</a>
+            </aside>
+          }
           @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
           @if (managerSection() === 'reports' || managerSection() === 'history') {
             @if (managerSection() === 'reports') {
@@ -246,6 +252,22 @@
               }
               @if (invitationNotice()) { <p class="success" role="status">{{ invitationNotice() }}</p> }
               @if (invitationError()) { <p class="error" role="alert">{{ invitationError() }}</p> }
+            </section>
+          } @else if (managerSection() === 'demo-requests' && profile.role === 'SUPER_ADMIN') {
+            <section class="profile-card demo-leads" aria-labelledby="demo-leads-title">
+              <h2 id="demo-leads-title">Demandes de démonstration</h2>
+              <p>Les coordonnées restent disponibles après la suppression automatique de l’espace de démo.</p>
+              @if (demoRequestsError()) { <p class="error" role="alert">{{ demoRequestsError() }}</p> }
+              @if (demoRequestsLoading()) { <p class="muted">Chargement des demandes…</p> }
+              @if (!demoRequestsLoading()) {
+                @for (lead of demoRequests(); track lead.id) {
+                  <article class="demo-lead-row">
+                    <div><strong>{{ lead.fullName }}</strong><span>{{ lead.email }}</span><span>{{ lead.phone }}</span></div>
+                    <div><span>Demande : {{ lead.createdAt | date:'dd/MM/yyyy à HH:mm':'':'fr-FR' }}</span><span [class.demo-lead-expired]="!lead.demoActive">{{ lead.demoActive ? 'Démo en cours' : 'Démo terminée' }}</span></div>
+                    <a [href]="demoContactLink(lead)" target="_blank" rel="noopener noreferrer">Contacter sur WhatsApp</a>
+                  </article>
+                } @empty { @if (!demoRequestsError()) { <p class="muted">Aucune demande de démo pour le moment.</p> } }
+              }
             </section>
           } @else {
             @if (profileLoadError()) { <p class="error" role="alert">{{ profileLoadError() }}</p> }

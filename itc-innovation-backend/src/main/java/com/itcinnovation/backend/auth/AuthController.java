@@ -58,10 +58,18 @@ public class AuthController {
         }
 
         Instant now = Instant.now();
+        Instant demoExpiresAt = userRepository.findDemoExpiresAtForUser(user.getId()).orElse(null);
+        if (demoExpiresAt != null && !demoExpiresAt.isAfter(now)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Votre période de démonstration est terminée.");
+        }
+        Instant tokenExpiresAt = demoExpiresAt == null
+                ? now.plus(8, ChronoUnit.HOURS)
+                : demoExpiresAt;
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("itc-innovation")
                 .issuedAt(now)
-                .expiresAt(now.plus(8, ChronoUnit.HOURS))
+                .expiresAt(tokenExpiresAt)
                 .subject(user.getId().toString())
                 .claim("email", user.getEmail())
                 .claim("role", user.getRole().name())
@@ -76,6 +84,7 @@ public class AuthController {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getEmail(),
-                user.getRole());
+                user.getRole(),
+                demoExpiresAt);
     }
 }

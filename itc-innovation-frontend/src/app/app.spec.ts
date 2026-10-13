@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { App, filterEmployeesByStatus, filterManagerReportings, formatFrenchReportDate, paginateReportings, reportingsBeforeDate, reportingsForDate, resizeTextareaToContent, sortReportings } from './app';
 import { routes } from './app.routes';
+import { LandingComponent } from './landing.component';
 
 describe('App', () => {
   beforeEach(async () => {
@@ -25,6 +26,8 @@ describe('App', () => {
 
   it('should expose manager signup only through an invitation token route', () => {
     expect(routes.some(route => route.path === 'manager-invite/:token')).toBe(true);
+    expect(routes.some(route => route.path === '' && route.component === LandingComponent)).toBe(true);
+    expect(routes.some(route => route.path === 'connexion' && route.component === App)).toBe(true);
     expect(routes.some(route => route.path === 'manager-access-c6ea546063f7ae11456a402557415f6b')).toBe(false);
     expect(routes.some(route => route.path === 'admin/create-director')).toBe(false);
   });

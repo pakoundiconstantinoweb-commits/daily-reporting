@@ -28,10 +28,13 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.itcinnovation.backend.ApiErrorResponse;
+import com.itcinnovation.backend.demo.DemoTrialFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -46,7 +49,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, ObjectMapper objectMapper) throws Exception {
+    FilterRegistrationBean<DemoTrialFilter> demoTrialFilterRegistration(DemoTrialFilter filter) {
+        FilterRegistrationBean<DemoTrialFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            ObjectMapper objectMapper,
+            DemoTrialFilter demoTrialFilter) throws Exception {
         AuthenticationEntryPoint apiAuthenticationEntryPoint = (request, response, exception) -> writeSecurityError(
             objectMapper, response, HttpStatus.UNAUTHORIZED,
             "Session expirée ou authentification requise.", request.getRequestURI());
@@ -63,6 +76,7 @@ public class SecurityConfig {
                     .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/setup/manager").permitAll()
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/setup/invitations/**").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/demo/requests").permitAll()
                     .requestMatchers("/api/super-admin/**").hasRole("SUPER_ADMIN")
                     .requestMatchers("/api/manager/**").hasAnyRole("MANAGER", "SUPER_ADMIN")
                     .requestMatchers("/api/reports/manager").hasAnyRole("MANAGER", "SUPER_ADMIN")
@@ -76,6 +90,7 @@ public class SecurityConfig {
                         .accessDeniedHandler(apiAccessDeniedHandler)
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
+        http.addFilterAfter(demoTrialFilter, BearerTokenAuthenticationFilter.class);
         return http.build();
     }
 

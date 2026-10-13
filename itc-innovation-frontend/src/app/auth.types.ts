@@ -5,4 +5,5 @@ export interface AuthResponse {
   lastName: string;
   email: string;
   role: 'SUPER_ADMIN' | 'MANAGER' | 'EMPLOYEE';
+  demoExpiresAt?: string | null;
 }

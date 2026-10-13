@@ -19,4 +19,6 @@ public interface ReportingRepository extends JpaRepository<Reporting, Long> {
             Long managerId, LocalDate reportDate, ReportingStatus status);
 
         Optional<Reporting> findByIdAndEmployee_Manager_Id(Long id, Long managerId);
+
+        long deleteByEmployee_Manager_Id(Long managerId);
 }

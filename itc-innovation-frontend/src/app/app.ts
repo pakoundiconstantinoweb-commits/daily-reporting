@@ -110,6 +110,16 @@ interface CreatedManagerInvitation {
   url: string;
 }
 
+interface DemoLead {
+  id: number;
+  fullName: string;
+  email: string;
+  phone: string;
+  createdAt: string;
+  demoExpiresAt: string;
+  demoActive: boolean;
+}
+
 @Component({
   selector: 'app-root',
   imports: [CommonModule, FormsModule, LoginComponent],
@@ -157,7 +167,7 @@ export class App {
   protected readonly employeePhone = signal('');
   protected readonly employeePhoneCountryCode = signal('+228');
   protected readonly countryCodes = COUNTRY_CODES;
-  protected readonly managerSection = signal<'reports' | 'history' | 'employees' | 'invitations' | 'profile'>('reports');
+  protected readonly managerSection = signal<'reports' | 'history' | 'employees' | 'invitations' | 'demo-requests' | 'profile'>('reports');
   protected readonly employeeSection = signal<'report' | 'history' | 'profile'>('report');
   protected readonly profileInformation = signal<ProfileInformation | null>(null);
   protected readonly profileLoadError = signal('');
@@ -183,9 +193,14 @@ export class App {
   protected readonly invitationLoading = signal(false);
   protected readonly invitationError = signal('');
   protected readonly invitationNotice = signal('');
+  protected readonly demoRequests = signal<DemoLead[]>([]);
+  protected readonly demoRequestsError = signal('');
+  protected readonly demoRequestsLoading = signal(false);
+  protected readonly clockMs = signal(Date.now());
 
   constructor() {
     interval(30_000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.clockMs.set(Date.now());
       const today = this.localDateString();
       if (today === this.currentLoadedDay) return;
 
@@ -231,6 +246,33 @@ export class App {
     this.managerSection.set('history');
     this.selectedReport.set(null);
     this.searchManagerHistory();
+  }
+
+  protected openDemoRequests(): void {
+    this.managerSection.set('demo-requests');
+    this.demoRequestsError.set('');
+    this.demoRequestsLoading.set(true);
+    this.http.get<DemoLead[]>('/api/super-admin/demo-requests').subscribe({
+      next: requests => {
+        this.demoRequests.set(requests);
+        this.demoRequestsLoading.set(false);
+      },
+      error: (response: HttpErrorResponse) => {
+        this.demoRequestsError.set(apiErrorMessage(response, 'Les demandes de démo n’ont pas pu être chargées.'));
+        this.demoRequestsLoading.set(false);
+      },
+    });
+  }
+
+  protected demoContactLink(lead: DemoLead): string {
+    const phone = lead.phone.replace(/\D/g, '');
+    const message = `Bonjour ${lead.fullName}, votre période de démonstration Daily Reporting est terminée. Souhaitez-vous continuer avec un compte Directeur ?`;
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  }
+
+  protected demoExpired(): boolean {
+    const expiresAt = this.user()?.demoExpiresAt;
+    return !!expiresAt && Date.parse(expiresAt) <= this.clockMs();
   }
 
   protected openProfile(): void {

@@ -1,5 +1,7 @@
 package com.itcinnovation.backend.user;
 
+import java.time.Instant;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -37,6 +39,9 @@ public class User {
 
     @Column(length = 100)
     private String department;
+
+    @Column(name = "demo_expires_at")
+    private Instant demoExpiresAt;
 
     @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "manager_id")
@@ -114,6 +119,14 @@ public class User {
 
     public void setDepartment(String department) {
         this.department = department;
+    }
+
+    public Instant getDemoExpiresAt() {
+        return demoExpiresAt;
+    }
+
+    public void setDemoExpiresAt(Instant demoExpiresAt) {
+        this.demoExpiresAt = demoExpiresAt;
     }
 
     public User getManager() {

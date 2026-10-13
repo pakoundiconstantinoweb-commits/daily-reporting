@@ -1,5 +1,7 @@
 package com.itcinnovation.backend.auth;
 
+import java.time.Instant;
+
 import com.itcinnovation.backend.user.UserRole;
 
 public record AuthResponse(
@@ -8,6 +10,7 @@ public record AuthResponse(
         String firstName,
         String lastName,
         String email,
-        UserRole role
+        UserRole role,
+        Instant demoExpiresAt
 ) {
 }

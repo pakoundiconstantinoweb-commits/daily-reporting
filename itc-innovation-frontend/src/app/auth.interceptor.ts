@@ -3,7 +3,9 @@ import { catchError, throwError } from 'rxjs';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const token = localStorage.getItem('itc_token');
-  const isPublicEndpoint = request.url.startsWith('/api/auth/') || request.url.startsWith('/api/setup/');
+  const isPublicEndpoint = request.url.startsWith('/api/auth/')
+    || request.url.startsWith('/api/setup/')
+    || request.url.startsWith('/api/demo/');
   if (!token || !request.url.startsWith('/api') || isPublicEndpoint) return next(request);
 
   return next(request.clone({

@@ -1,0 +1,73 @@
+<main class="landing">
+  <header class="landing-header">
+    <a class="landing-brand" href="/" aria-label="Daily Reporting, accueil">
+      <img src="/daily-reporting-logo.svg" alt="">
+      <span>Daily Reporting</span>
+    </a>
+    <nav aria-label="Navigation principale">
+      <a href="#fonctionnalites">Fonctionnalités</a>
+      <a href="#essai">Essai gratuit</a>
+      <a class="landing-login" routerLink="/connexion">Connexion</a>
+    </nav>
+  </header>
+
+  <section class="landing-hero">
+    <div class="hero-copy">
+      <p class="landing-eyebrow">Le suivi d’équipe, sans complication</p>
+      <h1>Le reporting quotidien qui fait avancer votre équipe.</h1>
+      <p class="hero-description">Centralisez les activités de vos collaborateurs, suivez les reportings reçus et validez le travail de votre équipe depuis un seul espace.</p>
+      <div class="hero-actions">
+        <a class="landing-primary" href="#essai">Essayer gratuitement pendant 24 h</a>
+        <a class="landing-secondary" routerLink="/connexion">Déjà un compte ? Se connecter</a>
+      </div>
+      <p class="hero-assurance">Un espace privé pour votre équipe · Données de démonstration supprimées à la fin de l’essai</p>
+    </div>
+    <div class="hero-preview" aria-label="Aperçu du tableau de bord Daily Reporting">
+      <div class="preview-top"><span class="preview-dot"></span><span class="preview-dot"></span><span class="preview-dot"></span><span>Tableau de bord</span></div>
+      <div class="preview-title"><small>ESPACE DIRECTION</small><strong>Activités de l’équipe</strong></div>
+      <div class="preview-stats"><div><small>Reportings du jour</small><strong>08</strong></div><div><small>Employés actifs</small><strong>12</strong></div></div>
+      <div class="preview-report"><span class="preview-avatar">AM</span><div><strong>Suivi des dossiers clients</strong><small>Aïcha Mensah · Aujourd’hui</small></div><span class="preview-status">Reçu</span></div>
+      <div class="preview-report"><span class="preview-avatar second">KA</span><div><strong>Préparation du rapport</strong><small>Koffi Amégan · Aujourd’hui</small></div><span class="preview-status done">Validé</span></div>
+      <div class="preview-report"><span class="preview-avatar third">AK</span><div><strong>Réunion de coordination</strong><small>Ama Kossi · Hier</small></div><span class="preview-status">Reçu</span></div>
+    </div>
+  </section>
+
+  <section id="fonctionnalites" class="landing-features">
+    <p class="landing-eyebrow">Une meilleure visibilité au quotidien</p>
+    <h2>Tout le suivi de votre équipe, au même endroit.</h2>
+    <div class="feature-grid">
+      <article><span aria-hidden="true">01</span><h3>Recevoir les reportings</h3><p>Chaque collaborateur transmet ses activités du jour dans son propre espace de travail.</p></article>
+      <article><span aria-hidden="true">02</span><h3>Suivre l’avancement</h3><p>Retrouvez les activités de l’équipe, leur statut et leur historique par date.</p></article>
+      <article><span aria-hidden="true">03</span><h3>Valider et accompagner</h3><p>Validez un reporting ou demandez à l’employé de compléter les informations.</p></article>
+    </div>
+  </section>
+
+  <section id="essai" class="landing-trial">
+    <div class="trial-copy">
+      <p class="landing-eyebrow">Découvrez l’application par vous-même</p>
+      <h2>Demandez votre espace de démonstration.</h2>
+      <p>Remplissez le formulaire pour ouvrir immédiatement votre espace privé. L’essai dure 24 heures et commence avec un espace vide, que vous pouvez configurer vous-même.</p>
+      <ul><li>Un espace personnel de démonstration vide</li><li>Ajoutez vos employés et reportings quand vous le souhaitez</li><li>Suppression automatique des données d’essai après 24 h</li></ul>
+      <a class="trial-whatsapp" [href]="whatsappUrl" target="_blank" rel="noopener noreferrer">Une question ? Écrivez-nous sur WhatsApp</a>
+    </div>
+    <form class="demo-form" (ngSubmit)="startDemo()">
+      <h3>Commencer l’essai gratuit</h3>
+      <label for="demo-name">Nom complet</label>
+      <input id="demo-name" name="fullName" required maxlength="160" autocomplete="name" placeholder="Ex. Aïcha Mensah" [ngModel]="request().fullName" (ngModelChange)="update('fullName', $event)">
+      <label for="demo-email">E-mail professionnel</label>
+      <input id="demo-email" name="email" type="email" required maxlength="160" autocomplete="email" placeholder="nom@entreprise.com" [ngModel]="request().email" (ngModelChange)="update('email', $event)">
+      <label for="demo-phone">Téléphone / WhatsApp</label>
+      <input id="demo-phone" name="phone" type="tel" required minlength="7" maxlength="30" autocomplete="tel" placeholder="+228 90 00 00 00" [ngModel]="request().phone" (ngModelChange)="update('phone', $event)">
+      <label class="consent-label"><input type="checkbox" name="consentGiven" required [ngModel]="request().consentGiven" (ngModelChange)="update('consentGiven', $event)"><span>J’accepte que mes coordonnées soient conservées par le super-admin pour le suivi de ma demande commerciale.</span></label>
+      @if (error()) { <p class="landing-error" role="alert">{{ error() }}</p> }
+      <button type="submit" [disabled]="loading()">{{ loading() ? 'Préparation de votre espace…' : 'Créer ma démo de 24 h' }}</button>
+      <small>En envoyant le formulaire, vous accédez immédiatement à l’application.</small>
+    </form>
+  </section>
+
+  <footer class="landing-footer">
+    <a class="landing-brand" href="/" aria-label="Daily Reporting, accueil"><img src="/daily-reporting-logo.svg" alt=""><span>Daily Reporting</span></a>
+    <p>Le suivi quotidien des activités de votre équipe.</p>
+    <a [href]="whatsappUrl" target="_blank" rel="noopener noreferrer">Contacter le super-admin</a>
+  </footer>
+</main>

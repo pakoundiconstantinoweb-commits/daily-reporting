@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
+import java.time.Instant;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -43,5 +44,28 @@ class AuthControllerTest {
                 () -> controller.login(new AuthRequest("employee@example.com", "correct-password")));
         assertEquals(HttpStatus.FORBIDDEN, inactiveAccount.getStatusCode());
         assertEquals(AuthenticatedUserService.INACTIVE_ACCOUNT_MESSAGE, inactiveAccount.getReason());
+    }
+
+    @Test
+    void refusesDemoLoginAfterItsDeadline() {
+        UserRepository userRepository = mock(UserRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        User user = new User();
+        user.setId(42L);
+        user.setPassword("stored-hash");
+        when(userRepository.count()).thenReturn(1L);
+        when(userRepository.findByEmailIgnoreCase("demo@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("temporary-password", "stored-hash")).thenReturn(true);
+        when(userRepository.findDemoExpiresAtForUser(42L))
+                .thenReturn(Optional.of(Instant.now().minusSeconds(1)));
+
+        AuthController controller = new AuthController(
+                userRepository, passwordEncoder, mock(JwtEncoder.class));
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> controller.login(new AuthRequest("demo@example.com", "temporary-password")));
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
+        assertEquals("Votre période de démonstration est terminée.", exception.getReason());
     }
 }
