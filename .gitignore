@@ -5,7 +5,6 @@ Thumbs.db
 .idea/
 .kilo/
 
-
 # Node / Angular
 node_modules/
 **/node_modules/
