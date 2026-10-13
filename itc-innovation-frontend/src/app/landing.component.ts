@@ -37,7 +37,7 @@ export class LandingComponent {
 
   protected readonly loading = signal(false);
   protected readonly error = signal('');
-  protected readonly whatsappUrl = 'https://wa.me/22870383470?text=Bonjour%2C%20je%20souhaite%20continuer%20apr%C3%A8s%20ma%20d%C3%A9mo%20Daily%20Reporting.';
+  protected readonly whatsappUrl = 'https://wa.me/22893741753?text=Bonjour%2C%20je%20souhaite%20continuer%20apr%C3%A8s%20ma%20d%C3%A9mo%20Daily%20Reporting.';
 
   constructor(title: Title, meta: Meta) {
     title.setTitle('Daily Reporting — Logiciel de reporting quotidien d’équipe');
