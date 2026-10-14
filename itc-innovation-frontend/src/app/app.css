@@ -69,7 +69,7 @@ form { display: grid; gap: .65rem; } label { margin-top: .8rem; color: #42544c; 
 .sidebar-brand { display: flex; align-items: center; gap: .8rem; }.brand-mark, .account-avatar { display: grid; place-items: center; width: 2.9rem; height: 2.9rem; border-radius: 50%; color: #fff; background: linear-gradient(135deg, #655af5, #00b8d4); font-weight: 800; }.sidebar-brand strong { display: block; font-size: 1.05rem; }.sidebar-brand small { display: block; margin-top: .15rem; color: #8890a5; font-size: .65rem; letter-spacing: .18em; }.sidebar-label { margin: 3.2rem .7rem 1rem; color: #8990a5; font-size: .7rem; font-weight: 800; letter-spacing: .12em; }.sidebar-nav { display: grid; gap: .35rem; }.sidebar-account { margin-top: auto; padding: 1rem; border-radius: 1.2rem; background: rgba(255,255,255,.78); }.account-avatar { float: left; width: 2.5rem; height: 2.5rem; margin-right: .7rem; }.account-name { min-height: 2.5rem; display: grid; align-content: center; gap: .15rem; }.account-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.account-name small { color: #7d879c; font-size: .75rem; }.sidebar-account button { width: 100%; margin-top: .9rem; border: 1px dashed #b9bdf7; border-radius: 1.4rem; padding: .55rem; color: #5d52ed; background: transparent; cursor: pointer; font-weight: 700; }
 .manager-main { min-width: 0; padding: 2rem clamp(1.2rem, 3vw, 3rem); }.manager-header { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; margin-bottom: 1.4rem; }.manager-header h1 { max-width: 35rem; margin: 0; color: #273348; font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.65rem, 2.7vw, 2.25rem); letter-spacing: -.04em; }.manager-header .eyebrow { margin-bottom: .4rem; color: #747e96; }.manager-date { display: flex; align-items: center; gap: .7rem; white-space: nowrap; color: #7f899d; }.manager-date span, .manager-date b { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; color: #7c8498; background: rgba(255,255,255,.72); font-weight: 500; }.manager-date b { color: #fff; background: #8b91a5; }.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; }.stats-grid article, .date-search, .manager-list, .employee-admin { border: 1px solid rgba(255,255,255,.65); border-radius: 1.1rem; background: rgba(255,255,255,.62); box-shadow: 0 .5rem 1.4rem rgba(93, 135, 167, .07); }.stats-grid article { min-height: 7rem; display: flex; flex-direction: column; justify-content: center; padding: 1rem; }.stats-grid span, .stats-grid small { color: #7d879b; }.stats-grid strong { margin: .25rem 0; color: #273348; font-size: 2rem; line-height: 1; }.stats-grid small { font-size: .76rem; }.date-search { display: grid; gap: .65rem; margin: 1.1rem 0 1.4rem; padding: 1rem 1.1rem; }.date-search label { margin: 0; color: #7d879b; font-size: .78rem; }.date-search div { display: flex; width: min(100%, 13rem); align-items: center; border-radius: 1.2rem; background: rgba(255,255,255,.84); }.date-search input { min-width: 0; border: 0; border-radius: 1.2rem; padding: .75rem 1rem; background: transparent; box-shadow: none; }.date-search button { width: 2.3rem; border: 0; color: #3e49a8; background: transparent; cursor: pointer; font-size: 1.4rem; }
 .manager-list { overflow: hidden; padding: .35rem .9rem; }.manager-report { padding: 1.1rem 0; border-top: 1px solid rgba(151, 166, 188, .2); }.report-date { color: #7f899d; font-size: .78rem; }.report-content h2 { color: #273348; font-size: .95rem; }.report-content p:last-child { color: #7b8699; }.employee-admin { margin-top: 1.4rem; padding: 1.2rem; }
-.dashboard-panels { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(15rem, .85fr); gap: 1.5rem; }.reports-panel, .team-panel { min-width: 0; border: 1px solid rgba(255,255,255,.65); border-radius: 1.35rem; background: rgba(255,255,255,.62); box-shadow: 0 .8rem 2rem rgba(93, 135, 167, .07); }.reports-panel > h2, .team-panel > h2 { margin: 0; padding: 1.35rem 1.4rem .3rem; color: #273348; font-family: 'Space Grotesk', sans-serif; font-size: 1.35rem; }.reports-panel .manager-list { border: 0; border-radius: 0; background: transparent; box-shadow: none; }.team-panel { align-self: start; padding-bottom: 1rem; }.team-row { display: flex; align-items: center; gap: .75rem; margin: .35rem 1.2rem; padding: .7rem .2rem; border-bottom: 1px solid rgba(151,166,188,.18); }.team-row > div { display: grid; gap: .2rem; min-width: 0; }.team-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.team-row small { color: #7d879b; }.team-row i { width: .55rem; height: .55rem; margin-left: auto; border-radius: 50%; background: #62c49a; }.team-row i.inactive { background: #e5a36d; }.report-avatar { display: grid; flex: 0 0 2.25rem; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 50%; color: #fff; background: linear-gradient(135deg, #8d83f4, #65cce0); font-weight: 700; }
+.dashboard-panels { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(15rem, .85fr); gap: 1.5rem; }.reports-panel, .team-panel { min-width: 0; border: 1px solid rgba(255,255,255,.65); border-radius: 1.35rem; background: rgba(255,255,255,.62); box-shadow: 0 .8rem 2rem rgba(93, 135, 167, .07); }.reports-panel > h2, .team-panel > h2 { margin: 0; padding: 1.35rem 1.4rem .3rem; color: #273348; font-family: 'Space Grotesk', sans-serif; font-size: 1.35rem; }.reports-panel .manager-list { border: 0; border-radius: 0; background: transparent; box-shadow: none; }.team-panel { align-self: start; padding-bottom: 1rem; }.team-list { display: flex; flex-direction: column; max-height: 22rem; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-width: thin; }.team-row { display: flex; align-items: center; gap: .75rem; margin: .35rem 1.2rem; padding: .7rem .2rem; border-bottom: 1px solid rgba(151,166,188,.18); }.team-row > div { display: grid; gap: .2rem; min-width: 0; }.team-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.team-row small { color: #7d879b; }.team-row i { width: .55rem; height: .55rem; margin-left: auto; border-radius: 50%; background: #62c49a; }.team-row i.inactive { background: #e5a36d; }.report-avatar { display: grid; flex: 0 0 2.25rem; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 50%; color: #fff; background: linear-gradient(135deg, #8d83f4, #65cce0); font-weight: 700; }
 @media (max-width: 900px) { .manager-dashboard { grid-template-columns: 1fr; }.manager-sidebar { min-height: auto; padding: 1.2rem; }.sidebar-label { margin-top: 1.5rem; }.sidebar-account { margin-top: 1.5rem; }.sidebar-nav { grid-template-columns: 1fr 1fr; }.manager-main { padding: 1.5rem; } }
 @media (max-width: 600px) { .manager-header { align-items: flex-start; flex-direction: column; }.stats-grid { grid-template-columns: 1fr; }.manager-date { align-self: stretch; justify-content: space-between; }.manager-report { grid-template-columns: 1fr; gap: .5rem; }.manager-list { padding-inline: 1rem; } }
 @media (max-width: 900px) { .dashboard-panels { grid-template-columns: 1fr; } }
@@ -439,10 +439,10 @@ form { display: grid; gap: .65rem; } label { margin-top: .8rem; color: #42544c; 
 	.manager-sidebar .sidebar-nav button { min-width: 0; gap: .45rem; padding-inline: .55rem; white-space: normal; }
 	.manager-sidebar .sidebar-nav button span { flex: 0 0 1.8rem; }
 	.manager-main { width: 100%; padding: 1rem; }
-	.report-date-filter { grid-template-columns: minmax(0,1fr); width: 100%; margin-inline: 0; padding: .9rem; }
-	.report-date-filter > div { display: grid; grid-template-columns: minmax(0,1fr); width: 100%; min-width: 0; }
-	.report-date-filter input[type='date'] { display: block; justify-self: center; box-sizing: border-box; width: min(100%, 18rem); min-width: 0; max-width: 100%; margin-inline: auto; border-radius: 1rem; }
-	.report-date-filter button { display: block; box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; }
+	.report-date-filter { grid-template-columns: minmax(0,1fr); width: 100%; margin-inline: 0; padding: .85rem .95rem; }
+	.report-date-filter > div { display: flex; flex-wrap: wrap; width: 100%; min-width: 0; gap: .55rem; }
+	.report-date-filter input[type='date'] { width: 100%; min-width: 0; max-width: 100%; min-height: 2.35rem; padding: .45rem .75rem; border-radius: .65rem; }
+	.report-date-filter button { flex: 1 1 calc(50% - .3rem); min-height: 2.35rem; padding: .48rem .85rem; font-size: .84rem; border-radius: .65rem; }
 	.team-panel > .muted { margin-inline: 1.2rem; overflow-wrap: anywhere; }
 }
 .employee-admin { grid-template-columns: minmax(0,1fr) minmax(0,28rem); }
@@ -547,13 +547,18 @@ form { display: grid; gap: .65rem; } label { margin-top: .8rem; color: #42544c; 
 		overscroll-behavior-x: none;
 	}
 	.shell.nav-open { overflow: hidden; }
+	.workspace.manager-dashboard,
 	.manager-dashboard {
 		display: flex;
 		flex-direction: column;
 		grid-template-columns: none;
 		width: 100%;
+		max-width: 100%;
+		margin: 0 !important;
+		padding: 0 !important;
 		min-height: 100dvh;
 	}
+	.shell:has(.manager-dashboard) { display: block; grid-template-columns: 1fr; margin: 0; padding: 0; }
 	.shell:has(.employee-workspace) { grid-template-columns: 1fr; }
 	.mobile-topbar {
 		display: flex;
@@ -717,9 +722,9 @@ form { display: grid; gap: .65rem; } label { margin-top: .8rem; color: #42544c; 
 	}
 	.reports-date-label { margin: .95rem 0 .7rem; }
 	.dashboard-panels {
-		grid-template-columns: minmax(0, 1.15fr) minmax(0, .95fr);
-		align-items: start;
-		gap: .75rem;
+		grid-template-columns: minmax(0, 1fr);
+		align-items: stretch;
+		gap: 1rem;
 		margin-top: .2rem;
 	}
 	.manager-main .dashboard-panels.history-view { grid-template-columns: minmax(0, 1fr); }
@@ -732,7 +737,8 @@ form { display: grid; gap: .65rem; } label { margin-top: .8rem; color: #42544c; 
 	.reports-heading h2 { font-size: 1.05rem; }
 	.reports-panel > .reports-heading { padding-left: .95rem; padding-right: .85rem; }
 	.manager-list { padding: .2rem .85rem .85rem; }
-	.team-panel { padding-bottom: .7rem; }
+	.team-panel { width: 100%; padding-bottom: .7rem; }
+	.team-list { max-height: 16rem; }
 	.team-row {
 		gap: .5rem;
 		margin: .2rem .75rem;
@@ -905,6 +911,7 @@ select { max-width: 100%; }
 	}
 	.history-filter-actions {
 		display: flex !important;
+		flex-direction: row;
 		flex-wrap: wrap;
 		gap: .55rem;
 		width: 100%;
@@ -912,19 +919,30 @@ select { max-width: 100%; }
 	.history-filter-actions button,
 	.report-date-filter button,
 	.clear-search {
-		flex: 1 1 8.5rem;
+		flex: 1 1 calc(50% - .3rem);
 		width: auto;
-		min-height: 2.65rem;
-		padding: .65rem .8rem;
-		font-size: .86rem;
+		min-height: 2.35rem;
+		padding: .48rem .85rem;
+		font-size: .84rem;
+		border-radius: .65rem;
 	}
-	.report-date-filter { padding: 1rem; }
+	.report-date-filter { padding: .85rem .95rem; }
 	.report-date-filter > div {
-		flex-direction: column;
-		align-items: stretch;
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
 		gap: .55rem;
 	}
-	.report-date-filter input { width: 100%; min-width: 0; }
+	.report-date-filter input,
+	.report-date-filter select {
+		width: 100%;
+		min-width: 0;
+		min-height: 2.35rem;
+		padding: .45rem .75rem;
+		font-size: .88rem;
+		border-radius: .65rem;
+	}
 	.employee-admin {
 		grid-template-columns: minmax(0, 1fr);
 		grid-template-areas: 'heading' 'form' 'list';

@@ -174,13 +174,15 @@
               @if (managerSection() === 'reports') {
                 <section class="team-panel">
                   <h2>Équipe</h2>
-                  @for (employee of employees(); track employee.id) {
-                    <div class="team-row" [class.selected]="selectedEmployeeId() === employee.id" (click)="selectEmployee(employee)">
-                      <span class="report-avatar">{{ employee.firstName.charAt(0) }}</span>
-                      <div><strong>{{ employee.firstName }} {{ employee.lastName }}</strong><small>{{ employee.department || 'Employé' }}</small></div>
-                      <i [class.inactive]="employee.status === 'INACTIVE'"></i>
-                    </div>
-                  } @empty {<p class="muted">Aucun employé pour l’instant.</p>}
+                  <div class="team-list">
+                    @for (employee of employees(); track employee.id) {
+                      <div class="team-row" [class.selected]="selectedEmployeeId() === employee.id" (click)="selectEmployee(employee)">
+                        <span class="report-avatar">{{ employee.firstName.charAt(0) }}</span>
+                        <div><strong>{{ employee.firstName }} {{ employee.lastName }}</strong><small>{{ employee.department || 'Employé' }}</small></div>
+                        <i [class.inactive]="employee.status === 'INACTIVE'"></i>
+                      </div>
+                    } @empty {<p class="muted">Aucun employé pour l’instant.</p>}
+                  </div>
                 </section>
               }
             </div>
