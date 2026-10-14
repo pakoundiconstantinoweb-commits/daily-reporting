@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.itcinnovation.backend.reporting.ReportingRepository;
 import com.itcinnovation.backend.user.User;
 import com.itcinnovation.backend.user.UserRepository;
 import com.itcinnovation.backend.user.UserRole;
@@ -23,14 +24,17 @@ public class DemoRequestService {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final DemoRequestRepository demoRequestRepository;
+    private final ReportingRepository reportingRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DemoRequestService(
             DemoRequestRepository demoRequestRepository,
+            ReportingRepository reportingRepository,
             UserRepository userRepository,
             PasswordEncoder passwordEncoder) {
         this.demoRequestRepository = demoRequestRepository;
+        this.reportingRepository = reportingRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -79,6 +83,29 @@ public class DemoRequestService {
         return demoRequestRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(request -> DemoRequestResponse.from(request, now))
                 .toList();
+    }
+
+    @Transactional
+    public void deleteRequest(Long id) {
+        DemoRequest request = demoRequestRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La demande de démo est introuvable."));
+
+        Long managerId = request.getDemoManagerId();
+        if (managerId != null) {
+            reportingRepository.deleteByEmployee_Manager_Id(managerId);
+            userRepository.deleteByManager_IdAndRole(managerId, UserRole.EMPLOYEE);
+            userRepository.deleteById(managerId);
+        } else {
+            userRepository.findByEmailIgnoreCase(request.getEmail()).ifPresent(user -> {
+                if (user.getDemoExpiresAt() != null) {
+                    reportingRepository.deleteByEmployee_Manager_Id(user.getId());
+                    userRepository.deleteByManager_IdAndRole(user.getId(), UserRole.EMPLOYEE);
+                    userRepository.deleteById(user.getId());
+                }
+            });
+        }
+
+        demoRequestRepository.delete(request);
     }
 
     private static String[] splitName(String fullName) {

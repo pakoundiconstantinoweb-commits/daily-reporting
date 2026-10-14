@@ -45,7 +45,7 @@ class DemoRequestServiceTest {
         });
 
         DemoRequestService service = new DemoRequestService(
-                requestRepository, userRepository, passwordEncoder);
+                requestRepository, reportingRepository, userRepository, passwordEncoder);
         DemoCredentialsResponse response = service.create(
                 new DemoRequestForm("Aïcha Mensah", " Director@Example.com ", "+228 90 00 00 00", true));
 
@@ -65,15 +65,37 @@ class DemoRequestServiceTest {
     @Test
     void rejectsAnEmailThatAlreadyHasAnAccount() {
         DemoRequestRepository requestRepository = mock(DemoRequestRepository.class);
+        ReportingRepository reportingRepository = mock(ReportingRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
         when(userRepository.existsByEmailIgnoreCase("director@example.com")).thenReturn(true);
         DemoRequestService service = new DemoRequestService(
-                requestRepository, userRepository, mock(PasswordEncoder.class));
+                requestRepository, reportingRepository, userRepository, mock(PasswordEncoder.class));
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () ->
                 service.create(new DemoRequestForm(
                         "Aïcha Mensah", "director@example.com", "+228 90 00 00 00", true)));
 
         assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+    }
+
+    @Test
+    void deletesDemoRequestAndAssociatedWorkspace() {
+        DemoRequestRepository requestRepository = mock(DemoRequestRepository.class);
+        ReportingRepository reportingRepository = mock(ReportingRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        DemoRequest request = new DemoRequest();
+        request.setId(5L);
+        request.setEmail("director@example.com");
+        request.setDemoManagerId(10L);
+        when(requestRepository.findById(5L)).thenReturn(java.util.Optional.of(request));
+
+        DemoRequestService service = new DemoRequestService(
+                requestRepository, reportingRepository, userRepository, mock(PasswordEncoder.class));
+        service.deleteRequest(5L);
+
+        verify(reportingRepository).deleteByEmployee_Manager_Id(10L);
+        verify(userRepository).deleteByManager_IdAndRole(10L, UserRole.EMPLOYEE);
+        verify(userRepository).deleteById(10L);
+        verify(requestRepository).delete(request);
     }
 }

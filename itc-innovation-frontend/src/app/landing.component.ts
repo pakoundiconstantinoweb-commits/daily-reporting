@@ -115,14 +115,35 @@ export class LandingComponent {
       return;
     }
 
+    const request = this.request();
+    const fullName = request.fullName.trim();
+    const email = request.email.trim();
+    const phone = request.phone.trim();
+
+    if (!fullName) {
+      this.error.set('Veuillez renseigner votre nom complet.');
+      return;
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      this.error.set('Veuillez renseigner une adresse e-mail professionnelle valide.');
+      return;
+    }
+    if (!phone || phone.length < 7) {
+      this.error.set('Veuillez indiquer un numéro de téléphone ou WhatsApp valide.');
+      return;
+    }
+    if (!request.consentGiven) {
+      this.error.set('Veuillez accepter la conservation de vos coordonnées pour continuer.');
+      return;
+    }
+
     this.error.set('');
     this.loading.set(true);
-    const request = this.request();
     this.http.post<DemoCredentials>('/api/demo/requests', {
       ...request,
-      fullName: request.fullName.trim(),
-      email: request.email.trim(),
-      phone: request.phone.trim(),
+      fullName,
+      email,
+      phone,
     }).subscribe({
       next: credentials => {
         this.storeDemoCredentials(credentials);

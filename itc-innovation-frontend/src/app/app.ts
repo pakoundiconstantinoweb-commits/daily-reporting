@@ -293,6 +293,21 @@ export class App {
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   }
 
+  protected deleteDemoRequest(lead: DemoLead): void {
+    if (!confirm(`Supprimer la demande de démo de ${lead.fullName} (${lead.email}) ? Cette action supprimera également ses données de test associées.`)) {
+      return;
+    }
+
+    this.http.delete(`/api/super-admin/demo-requests/${lead.id}`).subscribe({
+      next: () => {
+        this.demoRequests.update(leads => leads.filter(item => item.id !== lead.id));
+      },
+      error: (response: HttpErrorResponse) => {
+        this.demoRequestsError.set(apiErrorMessage(response, 'Impossible de supprimer cette demande de démo.'));
+      },
+    });
+  }
+
   protected demoExpired(): boolean {
     const expiresAt = this.user()?.demoExpiresAt;
     return !!expiresAt && Date.parse(expiresAt) <= this.clockMs();

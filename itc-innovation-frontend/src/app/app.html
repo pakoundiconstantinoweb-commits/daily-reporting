@@ -225,7 +225,9 @@
                     </button>
                     <div class="employee-row-actions"><button type="button" class="status-button" [class.inactive]="employee.status === 'INACTIVE'" (click)="toggleEmployee(employee)">{{ employee.status === 'ACTIVE' ? 'Actif · Désactiver' : 'Inactif · Réactiver' }}</button></div>
                   </div>
-                } @empty {<p class="muted">Aucun employé pour ce filtre.</p>}
+                } @empty {
+                  <p class="muted">{{ employeeStatusFilter() === 'INACTIVE' ? 'Aucun employé inactif.' : employeeStatusFilter() === 'ACTIVE' ? 'Aucun employé actif.' : 'Aucun employé enregistré.' }}</p>
+                }
               </div>
               @if (editingEmployee(); as employee) {
                 <div class="report-modal-backdrop" role="presentation" (click)="cancelEditingEmployee()">
@@ -280,7 +282,10 @@
                   <article class="demo-lead-row">
                     <div><strong>{{ lead.fullName }}</strong><span>{{ lead.email }}</span><span>{{ lead.phone }}</span></div>
                     <div><span>Demande : {{ lead.createdAt | date:'dd/MM/yyyy à HH:mm':'':'fr-FR' }}</span><span [class.demo-lead-expired]="!lead.demoActive">{{ lead.demoActive ? 'Démo en cours' : 'Démo terminée' }}</span></div>
-                    <a [href]="demoContactLink(lead)" target="_blank" rel="noopener noreferrer">Contacter sur WhatsApp</a>
+                    <div class="demo-lead-actions">
+                      <a [href]="demoContactLink(lead)" target="_blank" rel="noopener noreferrer">Contacter sur WhatsApp</a>
+                      <button type="button" class="delete-lead-button" (click)="deleteDemoRequest(lead)" aria-label="Supprimer cette demande de démo">Supprimer</button>
+                    </div>
                   </article>
                 } @empty { @if (!demoRequestsError()) { <p class="muted">Aucune demande de démo pour le moment.</p> } }
               }
