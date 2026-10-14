@@ -19,4 +19,4 @@ input:focus { border-color: #5045e8; box-shadow: 0 0 0 3px rgba(80, 69, 232, .12
 .error { margin: 1rem 0 0; border-radius: .75rem; padding: .75rem; color: #9d3d35; background: #f8e4df; font-size: .85rem; }
 .login-footnote { margin: 1.8rem 0 0; color: #5d7890; font-size: .82rem; text-align: center; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-@media (max-width: 600px) { .login-screen { padding: 1.15rem .85rem; }.login-card { padding: 1.4rem 1.1rem 1.2rem; }.login-heading { margin-bottom: 1.25rem; }.login-heading h1 { font-size: 1.7rem; }.muted { font-size: .95rem; } }
+@media (max-width: 600px) { .login-screen { padding: 1.1rem .9rem; }.login-card { padding: 1.35rem 1.1rem 1.15rem; }.login-heading { margin-bottom: 1.15rem; }.login-heading h1 { font-size: 1.6rem; }.muted { font-size: .9rem; }.login-brand { margin-bottom: 1.1rem; } }

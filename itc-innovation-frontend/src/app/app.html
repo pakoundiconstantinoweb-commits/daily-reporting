@@ -1,10 +1,18 @@
-<main class="shell">
+<main class="shell" [class.nav-open]="mobileNavOpen()">
   @if (user(); as profile) {
     @if (profile.role === 'EMPLOYEE') {
-      <aside class="employee-sidebar" aria-label="Navigation employé">
+      <header class="mobile-topbar">
+        <button type="button" class="hamburger" [class.open]="mobileNavOpen()" [attr.aria-expanded]="mobileNavOpen()" aria-controls="employee-mobile-nav" (click)="toggleMobileNav()">
+          <span></span><span></span><span></span>
+          <span class="visually-hidden">{{ mobileNavOpen() ? 'Fermer le menu' : 'Ouvrir le menu' }}</span>
+        </button>
+        <div class="sidebar-brand"><img class="brand-logo" src="/daily-reporting-logo.svg" alt=""><div><strong>Daily Reporting</strong></div></div>
+      </header>
+      @if (mobileNavOpen()) { <div class="mobile-nav-backdrop" (click)="closeMobileNav()"></div> }
+      <aside class="employee-sidebar" id="employee-mobile-nav" [class.open]="mobileNavOpen()" aria-label="Navigation employé">
         <div class="sidebar-brand"><img class="brand-logo" src="/daily-reporting-logo.svg" alt=""><div><strong>Daily Reporting</strong><small>REPORTING</small></div></div>
         <p class="sidebar-label">ESPACE EMPLOYÉ</p>
-        <nav class="sidebar-nav" aria-label="Navigation employé"><button type="button" [class.active]="employeeSection() === 'report'" [attr.aria-current]="employeeSection() === 'report' ? 'page' : null" (click)="employeeSection.set('report')"><span>R</span>Mon reporting</button><button type="button" [class.active]="employeeSection() === 'history'" [attr.aria-current]="employeeSection() === 'history' ? 'page' : null" (click)="employeeSection.set('history')"><span>H</span>Historique</button></nav>
+        <nav class="sidebar-nav" aria-label="Navigation employé"><button type="button" [class.active]="employeeSection() === 'report'" [attr.aria-current]="employeeSection() === 'report' ? 'page' : null" (click)="employeeSection.set('report'); closeMobileNav()"><span>R</span>Mon reporting</button><button type="button" [class.active]="employeeSection() === 'history'" [attr.aria-current]="employeeSection() === 'history' ? 'page' : null" (click)="employeeSection.set('history'); closeMobileNav()"><span>H</span>Historique</button></nav>
         <div class="employee-sidebar-account"><div class="account-avatar">{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</div><div class="account-name"><strong>{{ profile.firstName }} {{ profile.lastName }}</strong><small>Employé</small></div><button type="button" class="employee-profile-link" [class.active]="employeeSection() === 'profile'" [attr.aria-current]="employeeSection() === 'profile' ? 'page' : null" (click)="openProfile()"><span aria-hidden="true">P</span>Mon profil</button><button type="button" class="employee-logout" (click)="logout()">Se déconnecter</button></div>
       </aside>
       @if (submitConfirmationOpen()) {
@@ -87,10 +95,18 @@
       </section>
     } @else {
       <section class="workspace manager-dashboard">
-        <aside class="manager-sidebar" aria-label="Navigation manager">
+        <header class="mobile-topbar">
+          <button type="button" class="hamburger" [class.open]="mobileNavOpen()" [attr.aria-expanded]="mobileNavOpen()" aria-controls="manager-mobile-nav" (click)="toggleMobileNav()">
+            <span></span><span></span><span></span>
+            <span class="visually-hidden">{{ mobileNavOpen() ? 'Fermer le menu' : 'Ouvrir le menu' }}</span>
+          </button>
+          <div class="sidebar-brand"><img class="brand-logo" src="/daily-reporting-logo.svg" alt=""><div><strong>Daily Reporting</strong></div></div>
+        </header>
+        @if (mobileNavOpen()) { <div class="mobile-nav-backdrop" (click)="closeMobileNav()"></div> }
+        <aside class="manager-sidebar" id="manager-mobile-nav" [class.open]="mobileNavOpen()" aria-label="Navigation manager">
           <div class="sidebar-brand"><img class="brand-logo" src="/daily-reporting-logo.svg" alt=""><div><strong>Daily Reporting</strong><small>REPORTING</small></div></div>
           <p class="sidebar-label">ESPACE DIRECTION</p>
-          <nav class="sidebar-nav" aria-label="Navigation manager"><button type="button" [class.active]="managerSection() === 'reports'" (click)="openManagerReports()"><span>R</span>Reportings du jour</button><button type="button" [class.active]="managerSection() === 'history'" (click)="openManagerHistory()"><span>H</span>Historique</button><button type="button" [class.active]="managerSection() === 'employees'" (click)="managerSection.set('employees')"><span>E</span>Employés</button>@if (profile.role === 'SUPER_ADMIN') { <button type="button" [class.active]="managerSection() === 'invitations'" (click)="managerSection.set('invitations')"><span>I</span>Invitations</button><button type="button" [class.active]="managerSection() === 'demo-requests'" (click)="openDemoRequests()"><span>D</span>Demandes de démo</button> }</nav>
+          <nav class="sidebar-nav" aria-label="Navigation manager"><button type="button" [class.active]="managerSection() === 'reports'" (click)="openManagerReports()"><span>R</span>Reportings du jour</button><button type="button" [class.active]="managerSection() === 'history'" (click)="openManagerHistory()"><span>H</span>Historique</button><button type="button" [class.active]="managerSection() === 'employees'" (click)="openManagerEmployees()"><span>E</span>Employés</button>@if (profile.role === 'SUPER_ADMIN') { <button type="button" [class.active]="managerSection() === 'invitations'" (click)="openManagerInvitations()"><span>I</span>Invitations</button><button type="button" [class.active]="managerSection() === 'demo-requests'" (click)="openDemoRequests()"><span>D</span>Demandes de démo</button> }</nav>
           <div class="sidebar-account"><div class="account-avatar">{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</div><div class="account-name"><strong>{{ profile.firstName }} {{ profile.lastName }}</strong><small>{{ profile.role === 'SUPER_ADMIN' ? 'Super-administrateur · Manager' : 'Directeur / Manager' }}</small></div><button type="button" class="sidebar-profile-link" [class.active]="managerSection() === 'profile'" [attr.aria-current]="managerSection() === 'profile' ? 'page' : null" (click)="openProfile()"><span aria-hidden="true">P</span>Mon profil</button><button type="button" class="sidebar-logout" (click)="logout()">Se déconnecter</button></div>
         </aside>
         <div class="manager-main">

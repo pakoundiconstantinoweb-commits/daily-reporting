@@ -169,6 +169,7 @@ export class App {
   protected readonly countryCodes = COUNTRY_CODES;
   protected readonly managerSection = signal<'reports' | 'history' | 'employees' | 'invitations' | 'demo-requests' | 'profile'>('reports');
   protected readonly employeeSection = signal<'report' | 'history' | 'profile'>('report');
+  protected readonly mobileNavOpen = signal(false);
   protected readonly profileInformation = signal<ProfileInformation | null>(null);
   protected readonly profileLoadError = signal('');
   protected readonly profileFirstName = signal('');
@@ -231,24 +232,46 @@ export class App {
   }
 
   protected logout(): void {
+    this.closeMobileNav();
     localStorage.removeItem('itc_token');
     localStorage.removeItem('itc_profile');
     this.user.set(null);
   }
 
+  protected toggleMobileNav(): void {
+    this.mobileNavOpen.update(open => !open);
+  }
+
+  protected closeMobileNav(): void {
+    this.mobileNavOpen.set(false);
+  }
+
   protected openManagerReports(): void {
+    this.closeMobileNav();
     this.managerSection.set('reports');
     this.selectedReport.set(null);
     this.searchReports();
   }
 
   protected openManagerHistory(): void {
+    this.closeMobileNav();
     this.managerSection.set('history');
     this.selectedReport.set(null);
     this.searchManagerHistory();
   }
 
+  protected openManagerEmployees(): void {
+    this.closeMobileNav();
+    this.managerSection.set('employees');
+  }
+
+  protected openManagerInvitations(): void {
+    this.closeMobileNav();
+    this.managerSection.set('invitations');
+  }
+
   protected openDemoRequests(): void {
+    this.closeMobileNav();
     this.managerSection.set('demo-requests');
     this.demoRequestsError.set('');
     this.demoRequestsLoading.set(true);
@@ -276,6 +299,7 @@ export class App {
   }
 
   protected openProfile(): void {
+    this.closeMobileNav();
     if (this.user()?.role === 'EMPLOYEE') {
       this.employeeSection.set('profile');
     } else {
@@ -581,6 +605,7 @@ export class App {
 
   @HostListener('document:keydown.escape')
   protected closeReportDetailsOnEscape(): void {
+    if (this.mobileNavOpen()) this.closeMobileNav();
     if (this.selectedReport()) this.closeReportDetails();
     if (this.editingEmployee()) this.cancelEditingEmployee();
   }

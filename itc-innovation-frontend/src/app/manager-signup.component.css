@@ -16,4 +16,4 @@ button:disabled { cursor: wait; opacity: .65; }
 .form-message { margin: 1rem 0 0; border-radius: .65rem; padding: .8rem; font-size: .88rem; line-height: 1.45; }
 .error { color: #9d3d35; background: #f8e4df; }
 .success { color: #356743; background: #e4f2e4; }
-@media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; }.form-grid .wide { grid-column: auto; } }
+@media (max-width: 560px) { .admin-page { padding: 1.15rem .9rem; }.admin-card { padding: 1.35rem 1.1rem; }.form-grid { grid-template-columns: minmax(0, 1fr); gap: .75rem; }.form-grid .wide { grid-column: 1; } h1 { font-size: 1.5rem; } }
