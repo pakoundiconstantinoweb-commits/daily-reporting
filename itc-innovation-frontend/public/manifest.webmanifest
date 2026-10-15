@@ -1,0 +1,17 @@
+{
+  "name": "Daily Reporting",
+  "short_name": "Reporting",
+  "description": "Suivi quotidien des activités d’équipe",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5faff",
+  "theme_color": "#5045e8",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

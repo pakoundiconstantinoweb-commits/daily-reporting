@@ -1,4 +1,4 @@
-:host { display: block; width: 100%; max-width: 100%; min-height: 100vh; overflow-x: hidden; overscroll-behavior-x: none; --ink: #17201d; --muted-ink: #61716a; --paper: #f7f8f2; --line: #d5ded6; --forest: #193b35; --lime: #b6d849; }
+:host { display: block; width: 100%; max-width: 100%; min-height: 100dvh; overflow-x: hidden; overscroll-behavior-x: none; --ink: #17201d; --muted-ink: #61716a; --paper: #f7f8f2; --line: #d5ded6; --forest: #193b35; --lime: #b6d849; }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; min-height: 100%; }
 body { overflow-x: hidden; }
@@ -82,7 +82,7 @@ form { display: grid; gap: .65rem; } label { margin-top: .8rem; color: #42544c; 
 .employee-form input { padding: .9rem 1.15rem; }
 .employee-form input::placeholder { text-transform: none; }
 .employee-form .phone-field { display: grid; grid-template-columns: minmax(8.5rem, 10rem) 1fr; gap: .6rem; }
-.employee-form .phone-field select { display: block; padding: .75rem .65rem; font-size: .86rem; }
+.employee-form .phone-field select { display: block; padding: .75rem .65rem; font-size: 1rem; }
 .employee-form .primary-button { min-height: 3.25rem; margin-top: .35rem; }
 @media (max-width: 600px) { .employee-form .phone-field { grid-template-columns: 1fr; } }
 .manager-dashboard { background: linear-gradient(135deg, #f4f9fc 0%, #e8f3f8 55%, #c8e7f0 100%); color: #102c49; }
@@ -259,7 +259,7 @@ form { display: grid; gap: .65rem; } label { margin-top: .8rem; color: #42544c; 
 .stats-grid small { font-size: .76rem; }
 .report-date-filter { gap: .5rem; margin: 1.2rem 0 1.4rem; padding: .9rem 1.1rem; }
 .report-date-filter label { font-size: .74rem; }
-.report-date-filter input { min-height: 2.9rem; padding: .65rem .85rem; font-size: .9rem; }
+.report-date-filter input { min-height: 2.9rem; padding: .65rem .85rem; font-size: 1rem; }
 .report-date-filter button, .clear-filter { padding: .65rem .85rem; font-size: .88rem; }
 .dashboard-panels { gap: 1.25rem; }
 .reports-panel, .team-panel { border-radius: 1.1rem; }
@@ -303,7 +303,7 @@ form { display: grid; gap: .65rem; } label { margin-top: .8rem; color: #42544c; 
 .employee-form { gap: .5rem; padding-bottom: .5rem; }
 .employee-form .field-group { gap: .25rem; }
 .employee-form .field-group label { margin: .2rem 0 0; font-size: .7rem; }
-.employee-form input, .employee-form select, .employee-form .phone-field input { min-height: 2.65rem; padding: .5rem .75rem; font-size: .9rem; }
+.employee-form input, .employee-form select, .employee-form .phone-field input { min-height: 2.65rem; padding: .5rem .75rem; font-size: 1rem; }
 .employee-form .phone-field select { padding: .5rem; }
 .employee-form .password-field { min-height: 2.65rem; }
 .employee-form .password-field input { min-height: 2.65rem; }
@@ -1045,7 +1045,7 @@ select { max-width: 100%; }
 	.employee-form .primary-button {
 		min-height: 2.75rem;
 		padding: .65rem .8rem;
-		font-size: .92rem;
+		font-size: 1rem;
 	}
 	.employee-form .phone-field { grid-template-columns: minmax(7rem, 8.5rem) minmax(0, 1fr); }
 	.employee-form .phone-field select { display: block; }
@@ -1075,4 +1075,37 @@ select { max-width: 100%; }
 	.demo-lead-row { grid-template-columns: minmax(0, 1fr); gap: .45rem; padding: .85rem 0; }
 	.manager-report { padding: .75rem 0; }
 	.decision-button { min-height: 2.35rem; padding: .4rem .7rem; }
+}
+
+@media (max-width: 900px) {
+	.mobile-topbar {
+		padding-top: max(.75rem, var(--safe-top));
+		padding-right: max(1rem, var(--safe-right));
+		padding-left: max(1rem, var(--safe-left));
+	}
+	.manager-sidebar,
+	.employee-sidebar {
+		padding-top: max(1.2rem, var(--safe-top));
+		padding-bottom: max(1.1rem, var(--safe-bottom));
+		padding-left: max(1rem, var(--safe-left));
+	}
+	.manager-main,
+	.shell:has(.employee-workspace) > .employee-workspace {
+		padding-bottom: max(2rem, var(--safe-bottom));
+		padding-right: max(1rem, var(--safe-right));
+		padding-left: max(1rem, var(--safe-left));
+	}
+}
+@media (max-width: 400px) {
+	.mobile-topbar {
+		padding-top: max(.75rem, var(--safe-top));
+		padding-right: max(.9rem, var(--safe-right));
+		padding-left: max(.9rem, var(--safe-left));
+	}
+	.manager-main,
+	.shell:has(.employee-workspace) > .employee-workspace {
+		padding-bottom: max(1.8rem, var(--safe-bottom));
+		padding-right: max(.9rem, var(--safe-right));
+		padding-left: max(.9rem, var(--safe-left));
+	}
 }
