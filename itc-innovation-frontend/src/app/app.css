@@ -209,6 +209,7 @@ form { display: grid; gap: .65rem; } label { margin-top: .8rem; color: #42544c; 
 .employee-form .password-toggle:hover, .profile-password-form .password-toggle:hover { color: #5a50ed; background: #e9e7ff; }
 .employee-form .eye-icon, .profile-password-form .eye-icon { position: relative; display: block; width: 1.15rem; height: .7rem; border: 1.5px solid currentColor; border-radius: 90% 10%; transform: rotate(45deg); }
 .employee-form .eye-icon::after, .profile-password-form .eye-icon::after { content: ''; position: absolute; top: 50%; left: 50%; width: .28rem; height: .28rem; border-radius: 50%; background: currentColor; transform: translate(-50%, -50%) rotate(-45deg); }
+.eye-icon.slashed::before { content: ''; position: absolute; top: 50%; left: 50%; z-index: 1; width: 1.45rem; height: 1.5px; background: currentColor; transform: translate(-50%, -50%) rotate(-90deg); border-radius: 1px; }
 .profile-password-form .primary-button { width: 100%; margin-top: .8rem; background: #5045e8; }
 .profile-password-form .primary-button:hover:not(:disabled) { background: #453bd0; }
 @media (max-width: 760px) { .topbar .account { gap: .7rem; flex-wrap: wrap; } }
